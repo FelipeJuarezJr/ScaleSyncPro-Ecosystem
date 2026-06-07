@@ -12,59 +12,23 @@ import 'utils/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
-    // On Android, google-services.json auto-initializes Firebase with [DEFAULT] app
-    // On Web, we need to initialize manually
-    // Try to initialize [DEFAULT] app, catch duplicate error if Android already did it
-    try {
-      await Firebase.initializeApp(
-        name: FirebaseConfig.defaultAppName,
-        options: FirebaseConfig.reptiGramAuth,
-      );
-      debugPrint('✅ [DEFAULT] Firebase app initialized: ${FirebaseConfig.reptiGramAuth.projectId}');
-    } catch (e) {
-      // If duplicate app error, Android auto-initialized it from google-services.json
-      if (e.toString().contains('duplicate-app') || e.toString().contains('[DEFAULT]')) {
-        debugPrint('✅ [DEFAULT] Firebase app already initialized by Android (from google-services.json)');
-      } else {
-        // Different error, rethrow it
-        debugPrint('❌ Error initializing [DEFAULT] app: $e');
-        rethrow;
-      }
+    await Firebase.initializeApp(
+      options: FirebaseConfig.scaleSyncPro,
+    );
+    debugPrint('✅ Firebase initialized: ${FirebaseConfig.scaleSyncPro.projectId}');
+  } catch (e) {
+    if (e.toString().contains('duplicate-app') || e.toString().contains('[DEFAULT]')) {
+      debugPrint('✅ Firebase already initialized (native platform)');
+    } else {
+      debugPrint('❌ Firebase initialization error: $e');
+      rethrow;
     }
-    
-    // Initialize ScaleSyncPro Firebase (secondary app for data storage)
-    try {
-      await Firebase.initializeApp(
-        name: FirebaseConfig.scaleSyncProAppName,
-        options: FirebaseConfig.scaleSyncProData,
-      );
-      debugPrint('✅ ScaleSyncPro Firebase app initialized: ${FirebaseConfig.scaleSyncProData.projectId}');
-    } catch (e) {
-      // If duplicate app error (shouldn't happen, but handle it)
-      if (e.toString().contains('duplicate-app')) {
-        debugPrint('✅ ScaleSyncPro Firebase app already exists');
-      } else {
-        debugPrint('❌ Error initializing ScaleSyncPro app: $e');
-        rethrow;
-      }
-    }
-    
-    debugPrint('✅ All Firebase apps initialized successfully');
-    debugPrint('Total Firebase apps: ${Firebase.apps.length}');
-    for (var app in Firebase.apps) {
-      debugPrint('  - ${app.name}: ${app.options.projectId}');
-    }
-  } catch (e, stackTrace) {
-    // If Firebase initialization fails with unexpected error, print and rethrow
-    debugPrint('❌ Unexpected Firebase initialization error: $e');
-    debugPrint('Stack trace: $stackTrace');
-    rethrow;
   }
-  
+
   await SharedPreferences.getInstance();
-  
+
   debugPrint('🚀 Starting ScaleSyncPro app...');
   runApp(const ProviderScope(child: ScaleSyncProApp()));
 }
@@ -87,12 +51,12 @@ class ScaleSyncProApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeService.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: authService.isAuthenticated 
-                ? const MainAppScreen() 
+            home: authService.isAuthenticated
+                ? const MainAppScreen()
                 : const LoginScreen(),
           );
         },
       ),
     );
   }
-} 
+}

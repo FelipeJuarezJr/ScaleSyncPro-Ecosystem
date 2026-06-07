@@ -1,22 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import '../config/firebase_config.dart';
 import '../models/reptile.dart';
 
-/// ReptileService uses ScaleSyncPro Firebase for all data operations
-/// Gets user ID from ReptiGram Firebase Auth (default app)
-/// Stores all data in ScaleSyncPro Firebase Firestore
+/// ReptileService — all data operations through the ScaleSyncPro Firebase project.
 class ReptileService {
-  // Use ScaleSyncPro Firebase for Firestore operations
-  FirebaseFirestore get _firestore => FirebaseFirestore.instanceFor(
-    app: Firebase.app(FirebaseConfig.scaleSyncProAppName),
-  );
-  
-  // Get user ID from ReptiGram Auth (default app)
-  String get _userId => FirebaseAuth.instanceFor(
-    app: Firebase.app(FirebaseConfig.defaultAppName),
-  ).currentUser?.uid ?? '';
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String get _userId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   // Get user's reptiles collection reference
   CollectionReference<Map<String, dynamic>> get _reptilesCollection =>

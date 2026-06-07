@@ -1,16 +1,14 @@
-// lib/features/pro/views/breeding_room_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/intl.dart';
 
 import '../../../models/reptile.dart';
 import '../../../services/reptile_service.dart';
-import '../../../config/firebase_config.dart';
 import '../../../utils/theme.dart';
 import '../models/breeding_model.dart';
+
 
 // ==========================================
 // Riverpod Data Providers
@@ -37,13 +35,8 @@ final reptilesProvider = FutureProvider.autoDispose<List<Reptile>>((ref) async {
 // ==========================================
 
 class BreedingService {
-  FirebaseFirestore get _firestore => FirebaseFirestore.instanceFor(
-    app: Firebase.app(FirebaseConfig.scaleSyncProAppName),
-  );
-  
-  String get _userId => FirebaseAuth.instanceFor(
-    app: Firebase.app(FirebaseConfig.defaultAppName),
-  ).currentUser?.uid ?? '';
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String get _userId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   CollectionReference<Map<String, dynamic>> get _breedingCollection =>
       _firestore.collection('users').doc(_userId).collection('breeding_logs');
