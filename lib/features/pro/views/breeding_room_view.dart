@@ -8,6 +8,9 @@ import '../../../models/reptile.dart';
 import '../../../services/reptile_service.dart';
 import '../../../utils/theme.dart';
 import '../models/breeding_model.dart';
+import '../../../models/activity_log.dart';
+import '../../../models/animal_note.dart';
+import '../../../screens/breeding_pair_detail_screen.dart';
 
 
 // ==========================================
@@ -71,10 +74,21 @@ class BreedingService {
   }
 
   Future<void> recordCopulation(String pairId, List<DateTime> currentDates) async {
-    final updatedDates = [...currentDates, DateTime.now()];
+    final now = DateTime.now();
+    final updatedDates = [...currentDates, now];
     await _breedingCollection.doc(pairId).update({
       'copulationDates': updatedDates.map((d) => Timestamp.fromDate(d)).toList(),
     });
+    // Log in activity history as well
+    await addActivityLog(
+      pairId,
+      ActivityLog(
+        event: 'Breeding observed',
+        detail: 'observed',
+        type: 'manual',
+        logDate: now,
+      ),
+    );
   }
 
   Future<void> removeBreedingPair(String id) async {
@@ -83,6 +97,114 @@ class BreedingService {
 
   Future<void> removeClutch(String id) async {
     await _clutchesCollection.doc(id).delete();
+  }
+
+  // Breeding Notes Subcollection Methods
+  Stream<List<AnimalNote>> watchNotes(String pairId) {
+    if (_userId.isEmpty || pairId.isEmpty) return Stream.value([]);
+    return _breedingCollection
+        .doc(pairId)
+        .collection('notes')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => AnimalNote.fromMap(doc.data(), doc.id))
+            .toList());
+  }
+
+  Future<void> addNote(String pairId, AnimalNote note) async {
+    if (_userId.isEmpty || pairId.isEmpty) return;
+    await _breedingCollection.doc(pairId).collection('notes').add(note.toMap());
+  }
+
+  Future<void> deleteNote(String pairId, String noteId) async {
+    if (_userId.isEmpty || pairId.isEmpty || noteId.isEmpty) return;
+    await _breedingCollection.doc(pairId).collection('notes').doc(noteId).delete();
+  }
+
+  // Breeding Activity Logs (History) Subcollection Methods
+  Stream<List<ActivityLog>> watchActivityLogs(String pairId) {
+    if (_userId.isEmpty || pairId.isEmpty) return Stream.value([]);
+    return _breedingCollection
+        .doc(pairId)
+        .collection('activity_logs')
+        .orderBy('logDate', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ActivityLog.fromMap(doc.data(), doc.id))
+            .toList());
+  }
+
+  Future<void> addActivityLog(String pairId, ActivityLog log) async {
+    if (_userId.isEmpty || pairId.isEmpty) return;
+    await _breedingCollection.doc(pairId).collection('activity_logs').add(log.toMap());
+  }
+
+  Future<void> deleteActivityLog(String pairId, String logId) async {
+    if (_userId.isEmpty || pairId.isEmpty || logId.isEmpty) return;
+    await _breedingCollection.doc(pairId).collection('activity_logs').doc(logId).delete();
+  }
+
+  // Breeding Photos Subcollection Methods
+  Stream<List<Map<String, dynamic>>> watchPhotos(String pairId) {
+    if (_userId.isEmpty || pairId.isEmpty) return Stream.value([]);
+    return _breedingCollection
+        .doc(pairId)
+        .collection('photos')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => {
+                  'id': doc.id,
+                  'url': doc.data()['url'] ?? '',
+                  'createdAt': (doc.data()['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+                })
+            .toList());
+  }
+
+  Future<void> addPhoto(String pairId, String url) async {
+    if (_userId.isEmpty || pairId.isEmpty) return;
+    await _breedingCollection.doc(pairId).collection('photos').add({
+      'url': url,
+      'createdAt': Timestamp.now(),
+    });
+  }
+
+  Future<void> deletePhoto(String pairId, String photoId) async {
+    if (_userId.isEmpty || pairId.isEmpty || photoId.isEmpty) return;
+    await _breedingCollection.doc(pairId).collection('photos').doc(photoId).delete();
+  }
+
+  // Breeding Files Subcollection Methods
+  Stream<List<Map<String, dynamic>>> watchFiles(String pairId) {
+    if (_userId.isEmpty || pairId.isEmpty) return Stream.value([]);
+    return _breedingCollection
+        .doc(pairId)
+        .collection('files')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => {
+                  'id': doc.id,
+                  'name': doc.data()['name'] ?? '',
+                  'url': doc.data()['url'] ?? '',
+                  'createdAt': (doc.data()['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+                })
+            .toList());
+  }
+
+  Future<void> addFile(String pairId, String name, String url) async {
+    if (_userId.isEmpty || pairId.isEmpty) return;
+    await _breedingCollection.doc(pairId).collection('files').add({
+      'name': name,
+      'url': url,
+      'createdAt': Timestamp.now(),
+    });
+  }
+
+  Future<void> deleteFile(String pairId, String fileId) async {
+    if (_userId.isEmpty || pairId.isEmpty || fileId.isEmpty) return;
+    await _breedingCollection.doc(pairId).collection('files').doc(fileId).delete();
   }
 }
 
@@ -483,32 +605,43 @@ class BreedingRoomView extends ConsumerWidget {
                 
                 // Pair Details
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${pair.sireName} ♂  x  ${pair.damName} ♀',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BreedingPairDetailScreen(pair: pair),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Introduced: $formattedDate',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      if (pair.notes != null && pair.notes!.isNotEmpty) ...[
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${pair.sireName} ♂  x  ${pair.damName} ♀',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 4),
                         Text(
-                          'Notes: ${pair.notes}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          'Introduced: $formattedDate',
+                          style: theme.textTheme.bodySmall,
                         ),
+                        if (pair.notes != null && pair.notes!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Notes: ${pair.notes}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontStyle: FontStyle.italic,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),

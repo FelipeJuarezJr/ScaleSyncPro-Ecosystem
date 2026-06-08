@@ -6,6 +6,7 @@ import '../widgets/stat_card.dart';
 import '../widgets/activity_item.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/add_reptile_modal.dart';
+import '../widgets/add_breeding_modal.dart';
 
 
 class DashboardScreen extends StatefulWidget {
@@ -620,6 +621,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         context: context,
         barrierDismissible: true,
         builder: (context) => const AddReptileModal(),
+      );
+    } else if (modalType == 'addBreedingModal') {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => const AddBreedingModal(),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
