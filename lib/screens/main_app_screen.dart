@@ -110,13 +110,10 @@ class _MainAppScreenState extends State<MainAppScreen> {
     final authService = context.watch<AuthService>();
     final themeService = context.watch<ThemeService>();
     final userData = authService.userData;
-    final isMobile = MediaQuery.of(context).size.width <= 768;
-    
-    // Debug: Print screen width and mobile status
-    if (kDebugMode) {
-      print('Screen width: ${MediaQuery.of(context).size.width}');
-      print('Is mobile: $isMobile');
-    }
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth <= 768;
+    // At widths 768-950, nav items + user section overflow; use compact mode
+    final isCompact = screenWidth > 768 && screenWidth <= 950;
 
     return Container(
       height: 70,
@@ -131,20 +128,20 @@ class _MainAppScreenState extends State<MainAppScreen> {
           child: Row(
             children: [
               // Brand Section
-              _buildBrandSection(),
-              
+              _buildBrandSection(isCompact),
+
               // Navigation Menu (hidden on mobile)
-              if (!isMobile) 
+              if (!isMobile)
                 Expanded(
-                  child: _buildNavigationMenu(),
+                  child: _buildNavigationMenu(isCompact),
                 ),
-              
+
               // Spacer to push user section and menu toggle to the right
               if (isMobile) const Spacer(),
-              
+
               // User Section
-              _buildUserSection(userData, themeService, authService),
-              
+              _buildUserSection(userData, themeService, authService, isCompact),
+
               // Mobile Menu Toggle (only on mobile)
               if (isMobile) _buildMobileMenuToggle(),
             ],
@@ -154,28 +151,29 @@ class _MainAppScreenState extends State<MainAppScreen> {
     );
   }
 
-  Widget _buildBrandSection() {
+  Widget _buildBrandSection([bool isCompact = false]) {
     return Row(
       children: [
         Icon(
           Icons.drag_indicator,
-          size: 32,
+          size: isCompact ? 24 : 32,
           color: AppTheme.primaryColor,
         ),
-        const SizedBox(width: 10),
-        Text(
-          'ScaleSyncPro',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryColor,
+        const SizedBox(width: 8),
+        if (!isCompact)
+          Text(
+            'ScaleSyncPro',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryColor,
+            ),
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildNavigationMenu() {
+  Widget _buildNavigationMenu([bool isCompact = false]) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: _navigationItems.asMap().entries.map((entry) {
@@ -184,16 +182,15 @@ class _MainAppScreenState extends State<MainAppScreen> {
         final isActive = _currentIndex == index;
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
+          padding: EdgeInsets.symmetric(horizontal: isCompact ? 4 : 12),
           child: InkWell(
-            onTap: () {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
+            onTap: () => setState(() => _currentIndex = index),
             borderRadius: BorderRadius.circular(AppTheme.borderRadius),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: isCompact ? 6 : 12,
+                vertical: 6,
+              ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppTheme.borderRadius),
                 color: isActive ? AppTheme.bgSecondary : Colors.transparent,
@@ -203,14 +200,14 @@ class _MainAppScreenState extends State<MainAppScreen> {
                 children: [
                   Icon(
                     item.icon,
-                    size: 20,
+                    size: isCompact ? 18 : 20,
                     color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     item.label,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: isCompact ? 11 : 12,
                       fontWeight: FontWeight.w500,
                       color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary,
                     ),
@@ -319,21 +316,12 @@ class _MainAppScreenState extends State<MainAppScreen> {
   Widget _buildUserSection(
     Map<String, dynamic>? userData,
     ThemeService themeService,
-    AuthService authService,
-  ) {
-    final isMobile = MediaQuery.of(context).size.width <= 768;
-    
-    // Debug: Print user data to console
-    if (kDebugMode) {
-      print('User data: $userData');
-      print('Current user: ${authService.currentUser?.email}');
-    }
-
+    AuthService authService, [
+    bool isCompact = false,
+  ]) {
     return Row(
       children: [
-        // User Info Section (matching HTML structure) - show on all screen sizes
-        // if (!isMobile) ...[
-        ...[
+        if (!isCompact) ...[ 
           // Pro Badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -363,7 +351,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
           const SizedBox(width: 15),
         ],
         
-        // User Menu with hover effect
+        // User Menu with hover effect — always visible
         _UserMenuButton(
           userData: userData,
           themeService: themeService,

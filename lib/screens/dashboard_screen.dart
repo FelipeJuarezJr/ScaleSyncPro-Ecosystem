@@ -59,7 +59,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisCount: isMobileBrowser ? 1 : 4,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: isMobileBrowser ? 4.0 : 3.04,
+            childAspectRatio: isMobileBrowser
+                ? 4.0
+                : (screenWidth <= 1050
+                    ? 2.0   // narrow desktop: cells ~85px, content needs ~76px
+                    : (screenWidth <= 1800
+                        ? 2.2 // medium: cells ~110px at 1050px, content needs ~100px
+                        : 3.04)),
             children: const [
               StatCard(
                 icon: Icons.drag_indicator,
@@ -270,7 +276,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisCount: isMobileBrowser ? 2 : 4,
                     crossAxisSpacing: 15,
                     mainAxisSpacing: 15,
-                    childAspectRatio: isMobileBrowser ? 2.0 : 2.33,
+                    childAspectRatio: isMobileBrowser ? 2.0 : (screenWidth <= 1050 ? 2.0 : 2.33),
                     children: [
                       _buildActionButton(
                         icon: Icons.add,

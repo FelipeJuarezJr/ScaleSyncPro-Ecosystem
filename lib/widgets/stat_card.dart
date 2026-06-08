@@ -28,7 +28,10 @@ class _StatCardState extends State<StatCard> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobileBrowser = screenWidth <= 768;
-    final isMediumScreen = screenWidth > 768 && screenWidth <= 1486;
+    // Narrow desktop: 768-1050px — needs compact sizing to avoid overflow
+    final isNarrowDesktop = screenWidth > 768 && screenWidth <= 1050;
+    // Medium: up to 1800px — large sizes don't fit cells until screen is very wide
+    final isMediumScreen = screenWidth > 1050 && screenWidth <= 1800;
     
     return MouseRegion(
       onEnter: (_) => setState(() => isHovered = true),
@@ -50,17 +53,17 @@ class _StatCardState extends State<StatCard> {
         transform: isHovered ? Matrix4.translationValues(0, -2, 0) : Matrix4.identity(),
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: isMobileBrowser ? 12 : (isMediumScreen ? 16 : 20), 
-            vertical: isMobileBrowser ? 16 : (isMediumScreen ? 20 : 24)
+            horizontal: isMobileBrowser ? 12 : (isNarrowDesktop ? 12 : (isMediumScreen ? 14 : 20)),
+            vertical:   isMobileBrowser ? 16 : (isNarrowDesktop ? 10 : (isMediumScreen ? 12 : 24)),
           ),
           child: Row(
             children: [
               // Icon container on the left
               Container(
-                width: isMobileBrowser ? 40 : (isMediumScreen ? 50 : 60),
-                height: isMobileBrowser ? 40 : (isMediumScreen ? 50 : 60),
+                width: isMobileBrowser ? 40 : (isNarrowDesktop ? 36 : (isMediumScreen ? 50 : 60)),
+                height: isMobileBrowser ? 40 : (isNarrowDesktop ? 36 : (isMediumScreen ? 50 : 60)),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(isMobileBrowser ? 20 : (isMediumScreen ? 25 : 30)),
+                  borderRadius: BorderRadius.circular(isMobileBrowser ? 20 : (isNarrowDesktop ? 18 : (isMediumScreen ? 25 : 30))),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -73,10 +76,10 @@ class _StatCardState extends State<StatCard> {
                 child: Icon(
                   widget.icon,
                   color: Colors.white,
-                  size: isMobileBrowser ? 18 : (isMediumScreen ? 22 : 24),
+                  size: isMobileBrowser ? 18 : (isNarrowDesktop ? 16 : (isMediumScreen ? 22 : 24)),
                 ),
               ),
-              SizedBox(width: isMobileBrowser ? 12 : (isMediumScreen ? 16 : 20)),
+              SizedBox(width: isMobileBrowser ? 12 : (isNarrowDesktop ? 10 : (isMediumScreen ? 16 : 20))),
               // Content on the right
               Expanded(
                 child: Column(
@@ -88,20 +91,20 @@ class _StatCardState extends State<StatCard> {
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondary,
                         fontWeight: FontWeight.w500,
-                        fontSize: isMobileBrowser ? 11 : (isMediumScreen ? 13 : 14.4),
+                        fontSize: isMobileBrowser ? 11 : (isNarrowDesktop ? 11 : (isMediumScreen ? 13 : 14.4)),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: isMobileBrowser ? 2 : (isMediumScreen ? 3 : 4)),
+                    SizedBox(height: isMobileBrowser ? 2 : (isNarrowDesktop ? 1 : (isMediumScreen ? 3 : 4))),
                     Text(
                       widget.value,
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: isMobileBrowser ? 20 : (isMediumScreen ? 26 : 32),
+                        fontSize: isMobileBrowser ? 20 : (isNarrowDesktop ? 20 : (isMediumScreen ? 26 : 32)),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: isMobileBrowser ? 2 : (isMediumScreen ? 3 : 4)),
+                    SizedBox(height: isMobileBrowser ? 2 : (isNarrowDesktop ? 1 : (isMediumScreen ? 3 : 4))),
                     Text(
                       widget.change,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -110,7 +113,7 @@ class _StatCardState extends State<StatCard> {
                             : widget.isPositive! 
                                 ? AppTheme.successColor 
                                 : AppTheme.dangerColor,
-                        fontSize: isMobileBrowser ? 10 : (isMediumScreen ? 12 : 12.8),
+                        fontSize: isMobileBrowser ? 10 : (isNarrowDesktop ? 10 : (isMediumScreen ? 12 : 12.8)),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
