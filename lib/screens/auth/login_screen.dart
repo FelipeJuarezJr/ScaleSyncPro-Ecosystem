@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/theme_service.dart';
 import '../../utils/theme.dart';
+import '../main_app_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -128,6 +129,14 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
         _emailController.text.trim(),
         _passwordController.text,
       );
+
+      // Navigate directly to dashboard on successful sign in
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainAppScreen()),
+          (route) => false,
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -136,9 +145,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
             backgroundColor: AppTheme.dangerColor,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
         setState(() {
           _isLoading = false;
         });
@@ -154,15 +160,12 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     try {
       final authService = context.read<AuthService>();
       await authService.signInWithGoogle();
-      // Success - the auth state listener will automatically update the UI
+
+      // Navigate directly to dashboard on successful Google sign in
       if (mounted) {
-        // Optional: Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signed in with Google successfully!'),
-            backgroundColor: AppTheme.successColor,
-            duration: Duration(seconds: 2),
-          ),
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainAppScreen()),
+          (route) => false,
         );
       }
     } catch (e) {
@@ -192,9 +195,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
             duration: const Duration(seconds: 4),
           ),
         );
-      }
-    } finally {
-      if (mounted) {
         setState(() {
           _isLoading = false;
         });
