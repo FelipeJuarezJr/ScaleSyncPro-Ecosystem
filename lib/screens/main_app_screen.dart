@@ -11,6 +11,7 @@ import 'breeding_screen.dart';
 import 'schedule_screen.dart';
 import 'inventory_screen.dart';
 import 'reports_screen.dart';
+import 'package:scalesyncpro_firestore/widgets/add_task_modal.dart';
 
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({super.key});

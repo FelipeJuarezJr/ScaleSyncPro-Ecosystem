@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../models/feeding_log.dart';
-import '../../utils/theme.dart';
+import 'package:scalesyncpro_firestore/models/feeding_log.dart';
+import 'package:scalesyncpro_firestore/models/reptile.dart';
+import 'package:scalesyncpro_firestore/services/reptile_service.dart';
+import 'package:scalesyncpro_firestore/utils/theme.dart';
 
 class AddFeedingModal extends StatefulWidget {
-  final String reptileId;
-  final Future<void> Function(FeedingLog) onSave;
+  final String? reptileId;
+  final Future<void> Function(String reptileId, FeedingLog) onSave;
 
   const AddFeedingModal({
     super.key,
-    required this.reptileId,
+    this.reptileId,
     required this.onSave,
   });
 
@@ -37,6 +39,43 @@ class _AddFeedingModalState extends State<AddFeedingModal> {
   final List<String> _feedItems = [];
   final _feedItemController = TextEditingController();
 
+  List<Reptile> _reptiles = [];
+  bool _isLoadingReptiles = false;
+  String? _selectedReptileId;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.reptileId != null) {
+      _selectedReptileId = widget.reptileId;
+    } else {
+      _loadReptiles();
+    }
+  }
+
+  Future<void> _loadReptiles() async {
+    setState(() => _isLoadingReptiles = true);
+    try {
+      final reptiles = await ReptileService().getReptiles();
+      if (mounted) {
+        setState(() {
+          _reptiles = reptiles;
+          _isLoadingReptiles = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingReptiles = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load reptiles: $e'),
+            backgroundColor: AppTheme.dangerColor,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _foodController.dispose();
@@ -59,6 +98,13 @@ class _AddFeedingModalState extends State<AddFeedingModal> {
   }
 
   Future<void> _save() async {
+    if (_selectedReptileId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an animal')),
+      );
+      return;
+    }
+
     if (_feedItems.isEmpty && _feedItemController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please add at least one food item')),
@@ -86,7 +132,7 @@ class _AddFeedingModalState extends State<AddFeedingModal> {
             ? _notesController.text.trim()
             : null,
       );
-      await widget.onSave(log);
+      await widget.onSave(_selectedReptileId!, log);
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
@@ -106,7 +152,35 @@ class _AddFeedingModalState extends State<AddFeedingModal> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
-    if (picked != null) setState(() => _feedingDate = picked);
+    if (picked != null) {
+      setState(() {
+        _feedingDate = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          _feedingDate.hour,
+          _feedingDate.minute,
+        );
+      });
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_feedingDate),
+    );
+    if (picked != null) {
+      setState(() {
+        _feedingDate = DateTime(
+          _feedingDate.year,
+          _feedingDate.month,
+          _feedingDate.day,
+          picked.hour,
+          picked.minute,
+        );
+      });
+    }
   }
 
   @override
@@ -153,7 +227,58 @@ class _AddFeedingModalState extends State<AddFeedingModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Date picker
+                    // Animal selection (if reptileId is null)
+                    if (widget.reptileId == null) ...[
+                      _SectionLabel('Select Animal', isDark, theme),
+                      const SizedBox(height: 6),
+                      _isLoadingReptiles
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                                child: SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
+                            )
+                          : DropdownButtonFormField<String>(
+                              value: _selectedReptileId,
+                              dropdownColor: isDark ? AppTheme.bgSecondary : Colors.white,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                isDense: true,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                                  borderSide: BorderSide(color: isDark ? AppTheme.borderColor : AppTheme.lightBorderColor),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                                  borderSide: BorderSide(color: isDark ? AppTheme.borderColor : AppTheme.lightBorderColor),
+                                ),
+                              ),
+                              hint: Text(
+                                'Choose a reptile...',
+                                style: TextStyle(
+                                  color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              items: _reptiles.map((r) {
+                                return DropdownMenuItem<String>(
+                                  value: r.id,
+                                  child: Text('${r.name} (${r.species})'),
+                                );
+                              }).toList(),
+                              onChanged: (v) => setState(() => _selectedReptileId = v),
+                            ),
+                      const SizedBox(height: 16),
+                    ],
+
+                     // Date picker
                     _SectionLabel('Date', isDark, theme),
                     const SizedBox(height: 6),
                     InkWell(
@@ -172,6 +297,33 @@ class _AddFeedingModalState extends State<AddFeedingModal> {
                             const SizedBox(width: 8),
                             Text(
                               '${_feedingDate.day}/${_feedingDate.month}/${_feedingDate.year}',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Time picker
+                    _SectionLabel('Time', isDark, theme),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: _pickTime,
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.bgTertiary : AppTheme.lightBgSecondary,
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                          border: Border.all(color: isDark ? AppTheme.borderColor : AppTheme.lightBorderColor),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.access_time, size: 16, color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
+                            const SizedBox(width: 8),
+                            Text(
+                              TimeOfDay.fromDateTime(_feedingDate).format(context),
                               style: theme.textTheme.bodyMedium,
                             ),
                           ],

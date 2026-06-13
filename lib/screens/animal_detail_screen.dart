@@ -73,7 +73,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
       context: context,
       builder: (_) => AddFeedingModal(
         reptileId: _reptile.id!,
-        onSave: (log) => _service.addFeedingLog(_reptile.id!, log),
+        onSave: (reptileId, log) => _service.addFeedingLog(reptileId, log),
       ),
     );
   }

@@ -7,6 +7,10 @@ import '../widgets/activity_item.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/add_reptile_modal.dart';
 import '../widgets/add_breeding_modal.dart';
+import '../widgets/animal_detail/add_feeding_modal.dart';
+import '../services/reptile_service.dart';
+import 'package:scalesyncpro_firestore/widgets/add_task_modal.dart';
+
 
 
 class DashboardScreen extends StatefulWidget {
@@ -627,6 +631,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         context: context,
         barrierDismissible: true,
         builder: (context) => const AddBreedingModal(),
+      );
+    } else if (modalType == 'addTaskModal') {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => const AddTaskModal(),
+      );
+    } else if (modalType == 'addFeedingModal') {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => AddFeedingModal(
+          reptileId: null,
+          onSave: (reptileId, log) => ReptileService().addFeedingLog(reptileId, log),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
