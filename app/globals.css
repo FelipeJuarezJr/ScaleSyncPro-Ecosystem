@@ -1613,6 +1613,17 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .action-btn {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        background: var(--bg-primary);
+    }
+
+    .user-menu-toggle {
+        background: var(--bg-secondary);
+        color: var(--primary-color);
+    }
+
     .nav-menu {
         display: none;
     }

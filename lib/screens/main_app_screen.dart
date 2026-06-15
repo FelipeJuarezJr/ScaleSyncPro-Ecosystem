@@ -535,6 +535,8 @@ class _UserMenuButtonState extends State<_UserMenuButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width <= 768;
+    final showHovered = isMobile || _isHovered;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -544,7 +546,7 @@ class _UserMenuButtonState extends State<_UserMenuButton> {
         icon: Icon(
           Icons.account_circle,
           size: 24,
-          color: _isHovered ? const Color(0xFF00FF00) : AppTheme.textSecondary,
+          color: showHovered ? const Color(0xFF00FF00) : AppTheme.textSecondary,
         ),
         itemBuilder: (context) => [
           PopupMenuItem(

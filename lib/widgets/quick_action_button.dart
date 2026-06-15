@@ -22,6 +22,8 @@ class _QuickActionButtonState extends State<QuickActionButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width <= 768;
+    final showHovered = isMobile || _isHovered;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -30,7 +32,7 @@ class _QuickActionButtonState extends State<QuickActionButton> {
         onTap: widget.onTap,
         child: CustomPaint(
           painter: DashedBorderPainter(
-            color: _isHovered ? AppTheme.primaryColor : AppTheme.borderColor,
+            color: showHovered ? AppTheme.primaryColor : AppTheme.borderColor,
             strokeWidth: 4,
             dashPattern: const [6, 0.0625],
           ),
@@ -38,7 +40,7 @@ class _QuickActionButtonState extends State<QuickActionButton> {
             duration: AppTheme.transition,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
-              color: _isHovered ? AppTheme.bgPrimary : AppTheme.bgSecondary,
+              color: showHovered ? AppTheme.bgPrimary : AppTheme.bgSecondary,
               borderRadius: BorderRadius.circular(AppTheme.borderRadius),
             ),
             child: Column(
@@ -48,7 +50,7 @@ class _QuickActionButtonState extends State<QuickActionButton> {
                 Icon(
                   widget.icon,
                   size: 20,
-                  color: _isHovered ? AppTheme.primaryColor : AppTheme.textSecondary,
+                  color: showHovered ? AppTheme.primaryColor : AppTheme.textSecondary,
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -56,7 +58,7 @@ class _QuickActionButtonState extends State<QuickActionButton> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: _isHovered ? AppTheme.primaryColor : AppTheme.textSecondary,
+                    color: showHovered ? AppTheme.primaryColor : AppTheme.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
