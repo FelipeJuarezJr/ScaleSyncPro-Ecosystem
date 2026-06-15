@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:scalesyncpro_firestore/models/reptile.dart';
 import 'package:scalesyncpro_firestore/models/activity_log.dart';
 import 'package:scalesyncpro_firestore/models/animal_note.dart';
 import 'package:scalesyncpro_firestore/services/reptile_service.dart';
+import 'package:scalesyncpro_firestore/services/storage_service.dart';
 import 'package:scalesyncpro_firestore/utils/theme.dart';
 import 'package:scalesyncpro_firestore/widgets/animal_detail/detail_section_card.dart';
 import 'package:scalesyncpro_firestore/widgets/animal_detail/add_feeding_modal.dart';
@@ -26,6 +28,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
   String _selectedCategory = 'All';
   bool _showAllTimeline = false;
+  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -141,6 +144,114 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickAndUploadPhoto() async {
+    final picker = ImagePicker();
+    ImageSource? source;
+
+    source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final titleColor = isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Select Photo Source',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: titleColor,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_library, color: isDark ? AppTheme.primaryColor : AppTheme.lightPrimaryColor),
+                title: Text('Gallery', style: TextStyle(color: titleColor)),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt, color: isDark ? AppTheme.primaryColor : AppTheme.lightPrimaryColor),
+                title: Text('Camera', style: TextStyle(color: titleColor)),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (source == null) return;
+
+    try {
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (image != null && mounted) {
+        setState(() => _isUploadingPhoto = true);
+        
+        final bytes = await image.readAsBytes();
+        final storage = StorageService();
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}_${image.name}';
+        final uploadPath = 'reptiles/${_reptile.id}/$fileName';
+        
+        final downloadUrl = await storage.uploadFile(
+          path: uploadPath,
+          data: bytes,
+          contentType: 'image/jpeg',
+        );
+
+        final updatedPhotoUrls = [..._reptile.photoUrls, downloadUrl];
+        final updatedReptile = _reptile.copyWith(photoUrls: updatedPhotoUrls);
+        
+        await _service.updateReptile(_reptile.id!, updatedReptile);
+        
+        // Log to activity log
+        await _service.addActivityLog(_reptile.id!, ActivityLog(
+          event: 'Photo added',
+          detail: 'A new photo was added to the gallery.',
+          type: 'photo',
+          logDate: DateTime.now(),
+        ));
+
+        if (mounted) {
+          setState(() {
+            _reptile = updatedReptile;
+            _isUploadingPhoto = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Photo uploaded successfully!'),
+              backgroundColor: AppTheme.successColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error uploading photo: $e');
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload photo: $e'),
+            backgroundColor: AppTheme.dangerColor,
+          ),
+        );
+      }
+    }
   }
 
   // ─── Build ────────────────────────────────────────────────────────────
@@ -987,13 +1098,18 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
 
     return DetailSectionCard(
       title: 'Photos',
-      onEdit: () {},
-      onAdd: () {},
+      onAdd: _isUploadingPhoto ? null : _pickAndUploadPhoto,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: photos.isEmpty
-            ? _emptyMessage('You haven\'t uploaded any photos yet.', isDark, theme,
-                inline: true)
+            ? (_isUploadingPhoto
+                ? Container(
+                    height: 100,
+                    alignment: Alignment.center,
+                    child: const CircularProgressIndicator(),
+                  )
+                : _emptyMessage('You haven\'t uploaded any photos yet.', isDark, theme,
+                    inline: true))
             : GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -1003,15 +1119,54 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   mainAxisSpacing: 8,
                   childAspectRatio: 1,
                 ),
-                itemCount: photos.length,
-                itemBuilder: (_, i) => ClipRRect(
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadius),
-                  child: Image.network(photos[i], fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                itemCount: photos.length + (_isUploadingPhoto ? 1 : 0),
+                itemBuilder: (_, i) {
+                  if (i == photos.length) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.bgTertiary : AppTheme.lightBgTertiary,
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FullScreenImageViewer(
+                            photoUrls: photos,
+                            initialIndex: i,
+                            reptileId: _reptile.id!,
+                            onPhotosChanged: (newPhotos) {
+                              setState(() {
+                                _reptile = _reptile.copyWith(photoUrls: newPhotos);
+                              });
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    child: Hero(
+                      tag: 'photo_${_reptile.id}_$i',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                        child: Image.network(
+                          photos[i],
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
                             color: isDark ? AppTheme.bgTertiary : AppTheme.lightBgTertiary,
                             child: const Icon(Icons.broken_image_outlined),
-                          )),
-                ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
       ),
     );
@@ -1169,6 +1324,208 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                   ),
                 ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FullScreenImageViewer extends StatefulWidget {
+  final List<String> photoUrls;
+  final int initialIndex;
+  final String reptileId;
+  final Function(List<String>) onPhotosChanged;
+
+  const FullScreenImageViewer({
+    super.key,
+    required this.photoUrls,
+    required this.initialIndex,
+    required this.reptileId,
+    required this.onPhotosChanged,
+  });
+
+  @override
+  State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
+}
+
+class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
+  late PageController _pageController;
+  late int _currentIndex;
+  late List<String> _photos;
+  final _service = ReptileService();
+  bool _isDeleting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _photos = List<String>.from(widget.photoUrls);
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _confirmDelete() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Photo'),
+        content: const Text('Are you sure you want to delete this photo from the gallery?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _deleteCurrentPhoto();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.dangerColor),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteCurrentPhoto() async {
+    if (_photos.isEmpty) return;
+    
+    setState(() => _isDeleting = true);
+    try {
+      final newPhotos = List<String>.from(_photos)..removeAt(_currentIndex);
+      
+      // Update reptile in Firestore
+      final reptile = await _service.getReptile(widget.reptileId);
+      if (reptile != null) {
+        final updatedReptile = reptile.copyWith(photoUrls: newPhotos);
+        await _service.updateReptile(widget.reptileId, updatedReptile);
+        
+        // Log activity
+        await _service.addActivityLog(widget.reptileId, ActivityLog(
+          event: 'Photo deleted',
+          detail: 'A photo was removed from the gallery.',
+          type: 'photo',
+          logDate: DateTime.now(),
+        ));
+      }
+
+      widget.onPhotosChanged(newPhotos);
+
+      if (newPhotos.isEmpty) {
+        if (mounted) Navigator.pop(context);
+        return;
+      }
+
+      setState(() {
+        _photos = newPhotos;
+        _isDeleting = false;
+        if (_currentIndex >= _photos.length) {
+          _currentIndex = _photos.length - 1;
+        }
+      });
+      
+      _pageController.jumpToPage(_currentIndex);
+    } catch (e) {
+      setState(() => _isDeleting = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete photo: $e'),
+            backgroundColor: AppTheme.dangerColor,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: _photos.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return Center(
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 3.0,
+                  child: Hero(
+                    tag: 'photo_${widget.reptileId}_$index',
+                    child: Image.network(
+                      _photos[index],
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(child: CircularProgressIndicator(color: Colors.white));
+                      },
+                      errorBuilder: (_, __, ___) => const Center(
+                        child: Icon(Icons.broken_image, size: 64, color: Colors.white54),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.black54, Colors.transparent],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 40),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  Text(
+                    '${_currentIndex + 1} of ${_photos.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  _isDeleting
+                      ? const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          ),
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+                          onPressed: _confirmDelete,
+                        ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

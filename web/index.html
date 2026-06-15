@@ -135,9 +135,7 @@
           serviceWorkerVersion: serviceWorkerVersion,
         },
         onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine({
-            renderer: "html"
-          }).then(function(appRunner) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
             appRunner.runApp().then(function() {
               // Smoothly transition and hide splash screen once Flutter has run
               const splash = document.getElementById('splash-screen');
