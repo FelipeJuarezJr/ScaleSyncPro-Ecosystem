@@ -339,7 +339,7 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'ANIMAL: ${_reptile.name}'.toUpperCase(),
+                            'ANIMAL: ${_reptile.name}${_reptile.measurements['identifier'] != null && _reptile.measurements['identifier'].toString().isNotEmpty ? ' (${_reptile.measurements['identifier']})' : ''}'.toUpperCase(),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
@@ -536,6 +536,19 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 2),
+                  if (_reptile.measurements['identifier'] != null &&
+                      _reptile.measurements['identifier'].toString().isNotEmpty) ...[
+                    Text(
+                      'ID: ${_reptile.measurements['identifier']}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                  ],
                   Text(
                     _reptile.gender.toUpperCase(),
                     maxLines: 1,

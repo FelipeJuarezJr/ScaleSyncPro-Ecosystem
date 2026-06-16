@@ -322,14 +322,43 @@ class _ReptilesScreenState extends State<ReptilesScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      reptile.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            reptile.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+                            ),
+                          ),
+                        ),
+                        if (reptile.measurements['identifier'] != null &&
+                            reptile.measurements['identifier'].toString().isNotEmpty) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: (isDark ? AppTheme.primaryColor : AppTheme.lightPrimaryColor).withAlpha(38),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: (isDark ? AppTheme.primaryColor : AppTheme.lightPrimaryColor).withAlpha(76),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Text(
+                              reptile.measurements['identifier'].toString(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? AppTheme.primaryColor : AppTheme.lightPrimaryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -422,16 +451,46 @@ class _ReptilesScreenState extends State<ReptilesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          reptile.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
-                          ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                reptile.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+                                ),
+                              ),
+                            ),
+                            if (reptile.measurements['identifier'] != null &&
+                                reptile.measurements['identifier'].toString().isNotEmpty) ...[
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: (isDark ? AppTheme.primaryColor : AppTheme.lightPrimaryColor).withAlpha(38),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: (isDark ? AppTheme.primaryColor : AppTheme.lightPrimaryColor).withAlpha(76),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Text(
+                                  reptile.measurements['identifier'].toString(),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? AppTheme.primaryColor : AppTheme.lightPrimaryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 8),
                       _buildStatusBadge(reptile.status, isDark),
                     ],
                   ),

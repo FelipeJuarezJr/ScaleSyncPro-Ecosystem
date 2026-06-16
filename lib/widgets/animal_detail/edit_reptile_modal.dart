@@ -15,6 +15,7 @@ class EditReptileModal extends StatefulWidget {
 class _EditReptileModalState extends State<EditReptileModal> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _identifierController;
   late TextEditingController _speciesController;
   late TextEditingController _morphController;
   late TextEditingController _breederController;
@@ -40,6 +41,8 @@ class _EditReptileModalState extends State<EditReptileModal> {
     super.initState();
     final r = widget.reptile;
     _nameController = TextEditingController(text: r.name);
+    _identifierController = TextEditingController(
+        text: (r.measurements['identifier'] ?? '').toString());
     _speciesController = TextEditingController(text: r.species);
     _morphController = TextEditingController(text: r.morph ?? '');
     _breederController = TextEditingController(text: r.breeder ?? '');
@@ -59,6 +62,7 @@ class _EditReptileModalState extends State<EditReptileModal> {
   @override
   void dispose() {
     _nameController.dispose();
+    _identifierController.dispose();
     _speciesController.dispose();
     _morphController.dispose();
     _breederController.dispose();
@@ -105,6 +109,7 @@ class _EditReptileModalState extends State<EditReptileModal> {
         acquisitionDate: _acquisitionDate,
         measurements: {
           ...widget.reptile.measurements,
+          'identifier': _identifierController.text.trim().isEmpty ? null : _identifierController.text.trim(),
           'weight': double.tryParse(_weightController.text.trim()) ?? widget.reptile.measurements['weight'],
           'weightUnit': _selectedWeightUnit,
           'length': double.tryParse(_lengthController.text.trim()) ?? widget.reptile.measurements['length'],
@@ -188,14 +193,40 @@ class _EditReptileModalState extends State<EditReptileModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Name & Species
-                      _Label('Name', isDark, theme),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(hintText: 'Animal name'),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                      // Name & Identifier
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _Label('Name', isDark, theme),
+                                const SizedBox(height: 6),
+                                TextFormField(
+                                  controller: _nameController,
+                                  decoration: const InputDecoration(hintText: 'Animal name'),
+                                  validator: (v) =>
+                                      (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _Label('Identifier', isDark, theme),
+                                const SizedBox(height: 6),
+                                TextFormField(
+                                  controller: _identifierController,
+                                  decoration: const InputDecoration(hintText: 'Unique identifier'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 14),
                       _Label('Species / Type', isDark, theme),
