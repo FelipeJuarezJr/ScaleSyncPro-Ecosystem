@@ -12,6 +12,8 @@ import 'package:scalesyncpro_firestore/widgets/animal_detail/add_note_modal.dart
 import 'package:scalesyncpro_firestore/widgets/animal_detail/add_activity_modal.dart';
 import 'package:scalesyncpro_firestore/widgets/animal_detail/edit_reptile_modal.dart';
 import 'package:scalesyncpro_firestore/widgets/animal_detail/add_measurement_modal.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:scalesyncpro_firestore/features/market/services/market_push_service.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final Reptile reptile;
@@ -122,6 +124,24 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
       final fresh = await _service.getReptile(_reptile.id!);
       if (fresh != null && mounted) setState(() => _reptile = fresh);
     }
+  }
+
+  void _openMarketPushModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _MarketPushModal(
+          reptile: _reptile,
+          onSuccess: (updatedReptile) {
+            setState(() {
+              _reptile = updatedReptile;
+            });
+          },
+        );
+      },
+    );
   }
 
   void _confirmDeleteReptile() {
@@ -358,6 +378,136 @@ class _AnimalDetailScreenState extends State<AnimalDetailScreen> {
                     ),
                     _buildStatusBadge(_reptile.status, isDark),
                     const SizedBox(width: 8),
+                    if (_reptile.isForSale) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (isDark ? AppTheme.primaryColor : const Color(0xFF2C5530)).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: (isDark ? AppTheme.primaryColor : const Color(0xFF2C5530)).withValues(alpha: 0.4), width: 1),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.storefront, size: 10, color: isDark ? AppTheme.primaryColor : const Color(0xFF2C5530)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '\$${_reptile.salePrice?.toStringAsFixed(2) ?? '0.00'}',
+                              style: TextStyle(
+                                color: isDark ? AppTheme.primaryColor : const Color(0xFF2C5530),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Consumer(
+                        builder: (context, ref, _) {
+                          return TextButton.icon(
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  backgroundColor: const Color(0xFF151518),
+                                  title: const Text('Remove from Marketplace?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  content: const Text(
+                                    'This will delete the public listing and mark this animal as not for sale.',
+                                    style: TextStyle(color: Colors.white70),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text('Remove', style: TextStyle(color: AppTheme.dangerColor, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (!context.mounted) return;
+
+                              if (confirm == true) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Removing listing...')),
+                                );
+
+                                final result = await ref.read(marketPushServiceProvider).removeFromMarket(
+                                  reptile: _reptile,
+                                );
+
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  if (result.success) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(result.message),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    setState(() {
+                                      _reptile = _reptile.copyWith(
+                                        isForSale: false,
+                                        salePrice: null,
+                                        marketplaceListingId: '',
+                                      );
+                                    });
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(result.message),
+                                        backgroundColor: AppTheme.dangerColor,
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
+                            },
+                            icon: const Icon(Icons.remove_shopping_cart, size: 10, color: AppTheme.dangerColor),
+                            label: const Text(
+                              'REMOVE FROM MARKET',
+                              style: TextStyle(
+                                color: AppTheme.dangerColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              backgroundColor: AppTheme.dangerColor.withValues(alpha: 0.15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                    ] else ...[
+                      ElevatedButton.icon(
+                        onPressed: _openMarketPushModal,
+                        icon: const Icon(Icons.storefront, size: 10),
+                        label: const Text('PUSH TO MARKET', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF151518),
+                          foregroundColor: const Color(0xFF39FF14), // bright neon green
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                            side: const BorderSide(color: Color(0xFF39FF14), width: 0.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     PopupMenuButton<String>(
                       onSelected: (val) {
                         if (val == 'delete') _confirmDeleteReptile();
@@ -1541,6 +1691,338 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MarketPushModal extends StatefulWidget {
+  final Reptile reptile;
+  final Function(Reptile) onSuccess;
+
+  const _MarketPushModal({
+    required this.reptile,
+    required this.onSuccess,
+  });
+
+  @override
+  State<_MarketPushModal> createState() => _MarketPushModalState();
+}
+
+class _MarketPushModalState extends State<_MarketPushModal> {
+  final _formKey = GlobalKey<FormState>();
+  final _priceController = TextEditingController();
+  final _titleController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.text = '${widget.reptile.gender.toUpperCase()} ${widget.reptile.morph ?? ''} ${widget.reptile.species}'
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  @override
+  void dispose() {
+    _priceController.dispose();
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit(WidgetRef ref) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final price = double.tryParse(_priceController.text.trim());
+    if (price == null || price <= 0) {
+      setState(() => _errorMessage = 'Please enter a valid price greater than 0.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final service = ref.read(marketPushServiceProvider);
+    final result = await service.pushToMarket(
+      reptile: widget.reptile,
+      price: price,
+      customTitle: _titleController.text.trim(),
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (result.success) {
+        final updated = widget.reptile.copyWith(
+          isForSale: true,
+          salePrice: price,
+          marketplaceListingId: result.listingId,
+        );
+        widget.onSuccess(updated);
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+      } else {
+        setState(() => _errorMessage = result.message);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFF151518),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
+      ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  const Icon(Icons.storefront, color: Color(0xFF39FF14), size: 24),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Push to Storefront',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'List this animal on the public ScaleSync Marketplace.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                ),
+                child: Row(
+                  children: [
+                    if (widget.reptile.photoUrls.isNotEmpty)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          widget.reptile.photoUrls.first,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    else
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.pets, color: Colors.white24, size: 28),
+                      ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.reptile.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${widget.reptile.species} • ${widget.reptile.gender}',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (widget.reptile.morph != null) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF39FF14).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                widget.reptile.morph!,
+                                style: const TextStyle(
+                                  color: Color(0xFF39FF14),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Listing Title',
+                style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _titleController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  fillColor: Colors.white.withValues(alpha: 0.04),
+                  filled: true,
+                  hintText: 'Listing Title',
+                  hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF39FF14)),
+                  ),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Title is required' : null,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Asking Price (USD)',
+                style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _priceController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                style: const TextStyle(color: Color(0xFF39FF14), fontSize: 18, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  prefixText: '\$ ',
+                  prefixStyle: const TextStyle(color: Color(0xFF39FF14), fontSize: 18, fontWeight: FontWeight.bold),
+                  fillColor: Colors.white.withValues(alpha: 0.04),
+                  filled: true,
+                  hintText: '0.00',
+                  hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 18),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF39FF14)),
+                  ),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Price is required';
+                  final p = double.tryParse(v);
+                  if (p == null || p <= 0) return 'Enter a valid price > 0';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              if (_errorMessage != null) ...[
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: AppTheme.dangerColor, fontSize: 13),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+              ],
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: _isLoading ? null : () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Consumer(
+                      builder: (context, ref, _) {
+                        return ElevatedButton(
+                          onPressed: _isLoading ? null : () => _submit(ref),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF39FF14),
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                  ),
+                                )
+                              : const Text(
+                                  'PUSH TO STOREFRONT',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

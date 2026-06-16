@@ -17,6 +17,9 @@ class Reptile {
   final DateTime? lastHealthCheck;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isForSale;
+  final double? salePrice;
+  final String? marketplaceListingId; // Points to the public doc in /marketplace_listings
 
   Reptile({
     this.id,
@@ -33,6 +36,9 @@ class Reptile {
     this.measurements = const {},
     this.lastFeeding,
     this.lastHealthCheck,
+    this.isForSale = false,
+    this.salePrice,
+    this.marketplaceListingId,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
@@ -56,6 +62,9 @@ class Reptile {
       'lastHealthCheck': lastHealthCheck?.toIso8601String(),
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
+      'isForSale': isForSale,
+      'salePrice': salePrice,
+      'marketplaceListingId': marketplaceListingId,
     };
   }
 
@@ -83,6 +92,9 @@ class Reptile {
       measurements: Map<String, dynamic>.from(map['measurements'] ?? {}),
       lastFeeding: parseDate(map['lastFeeding']),
       lastHealthCheck: parseDate(map['lastHealthCheck']),
+      isForSale: map['isForSale'] ?? false,
+      salePrice: (map['salePrice'] as num?)?.toDouble(),
+      marketplaceListingId: map['marketplaceListingId'],
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: (map['updatedAt'] as Timestamp).toDate(),
     );
@@ -106,6 +118,9 @@ class Reptile {
     DateTime? lastHealthCheck,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? isForSale,
+    double? salePrice,
+    String? marketplaceListingId,
   }) {
     return Reptile(
       id: id ?? this.id,
@@ -124,6 +139,9 @@ class Reptile {
       lastHealthCheck: lastHealthCheck ?? this.lastHealthCheck,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      isForSale: isForSale ?? this.isForSale,
+      salePrice: salePrice ?? this.salePrice,
+      marketplaceListingId: marketplaceListingId ?? this.marketplaceListingId,
     );
   }
 

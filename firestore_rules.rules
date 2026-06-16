@@ -93,6 +93,20 @@ service cloud.firestore {
         && (resource.data.uid == request.auth.uid || request.auth.token.admin == true);
     }
 
+    // Public Marketplace Listings
+    match /marketplace_listings/{listingId} {
+      // Any authenticated user can browse marketplace listings
+      allow read: if request.auth != null;
+      
+      // Must be authenticated and seller UID must match auth.uid
+      allow create: if request.auth != null 
+        && request.resource.data.sellerId == request.auth.uid;
+        
+      // Only owner or admin can update/delete listings
+      allow update, delete: if request.auth != null 
+        && (resource.data.sellerId == request.auth.uid || request.auth.token.admin == true);
+    }
+
     // Direct Messaging Chat Threads (Regex-Based String Match Checks)
     match /chats/{chatId} {
       allow read, write: if request.auth != null 
