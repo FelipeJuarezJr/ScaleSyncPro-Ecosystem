@@ -1,4 +1,4 @@
-// lib/features/pro/models/breeding_model.dart
+// lib/features/ScaleSyncPro/models/breeding_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BreedingPair {

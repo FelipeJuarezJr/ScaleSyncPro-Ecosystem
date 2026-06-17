@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:scalesyncpro_firestore/models/reptile.dart';
+import 'package:scalesync_pro_ecosystem/models/reptile.dart';
 
 /// Type-safe response representing the result of the market push transaction.
 class MarketPushResult {

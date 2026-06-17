@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:scalesyncpro_firestore/models/reptile.dart';
-import 'package:scalesyncpro_firestore/models/activity_log.dart';
-import 'package:scalesyncpro_firestore/models/animal_note.dart';
-import 'package:scalesyncpro_firestore/services/reptile_service.dart';
-import 'package:scalesyncpro_firestore/services/storage_service.dart';
-import 'package:scalesyncpro_firestore/utils/theme.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/detail_section_card.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/add_feeding_modal.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/add_note_modal.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/add_activity_modal.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/edit_reptile_modal.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/add_measurement_modal.dart';
+import 'package:scalesync_pro_ecosystem/models/reptile.dart';
+import 'package:scalesync_pro_ecosystem/models/activity_log.dart';
+import 'package:scalesync_pro_ecosystem/models/animal_note.dart';
+import 'package:scalesync_pro_ecosystem/services/reptile_service.dart';
+import 'package:scalesync_pro_ecosystem/services/storage_service.dart';
+import 'package:scalesync_pro_ecosystem/utils/theme.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/detail_section_card.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/add_feeding_modal.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/add_note_modal.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/add_activity_modal.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/edit_reptile_modal.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/add_measurement_modal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:scalesyncpro_firestore/features/market/services/market_push_service.dart';
+import 'package:scalesync_pro_ecosystem/features/ScaleSyncMarketplace/services/market_push_service.dart';
 
 class AnimalDetailScreen extends StatefulWidget {
   final Reptile reptile;

@@ -5,13 +5,13 @@ import '../services/auth_service.dart';
 import '../services/theme_service.dart';
 import '../utils/theme.dart';
 import 'auth/login_screen.dart';
-import 'dashboard_screen.dart';
+import 'package:scalesync_pro_ecosystem/features/ScaleSyncPro/views/dashboard_view.dart';
 import 'reptiles_screen.dart';
 import 'breeding_screen.dart';
 import 'schedule_screen.dart';
 import 'inventory_screen.dart';
 import 'reports_screen.dart';
-import 'package:scalesyncpro_firestore/widgets/add_task_modal.dart';
+import 'package:scalesync_pro_ecosystem/widgets/add_task_modal.dart';
 
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({super.key});
@@ -25,11 +25,12 @@ class _MainAppScreenState extends State<MainAppScreen> {
   bool _isMobileMenuOpen = false;
 
   final List<Widget> _screens = const [
-    DashboardScreen(),
+    DashboardView(),
     ReptilesScreen(),
     BreedingScreen(),
     ScheduleScreen(),
     InventoryScreen(),
+
     ReportsScreen(),
   ];
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:scalesyncpro_firestore/models/feeding_log.dart';
-import 'package:scalesyncpro_firestore/models/reptile.dart';
-import 'package:scalesyncpro_firestore/services/reptile_service.dart';
-import 'package:scalesyncpro_firestore/utils/theme.dart';
+import 'package:scalesync_pro_ecosystem/models/feeding_log.dart';
+import 'package:scalesync_pro_ecosystem/models/reptile.dart';
+import 'package:scalesync_pro_ecosystem/services/reptile_service.dart';
+import 'package:scalesync_pro_ecosystem/utils/theme.dart';
 
 class AddFeedingModal extends StatefulWidget {
   final String? reptileId;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-import 'package:scalesyncpro_firestore/models/task_schedule.dart';
-import 'package:scalesyncpro_firestore/services/task_schedule_service.dart';
-import 'package:scalesyncpro_firestore/widgets/add_task_modal.dart';
-import 'package:scalesyncpro_firestore/utils/theme.dart';
+import 'package:scalesync_pro_ecosystem/models/task_schedule.dart';
+import 'package:scalesync_pro_ecosystem/services/task_schedule_service.dart';
+import 'package:scalesync_pro_ecosystem/widgets/add_task_modal.dart';
+import 'package:scalesync_pro_ecosystem/utils/theme.dart';
 
 
 class ScheduleScreen extends StatefulWidget {

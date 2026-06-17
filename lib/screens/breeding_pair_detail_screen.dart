@@ -4,18 +4,18 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:scalesyncpro_firestore/models/reptile.dart';
-import 'package:scalesyncpro_firestore/models/activity_log.dart';
-import 'package:scalesyncpro_firestore/models/animal_note.dart';
-import 'package:scalesyncpro_firestore/services/reptile_service.dart';
-import 'package:scalesyncpro_firestore/services/storage_service.dart';
-import 'package:scalesyncpro_firestore/features/pro/models/breeding_model.dart';
-import 'package:scalesyncpro_firestore/features/pro/views/breeding_room_view.dart';
-import 'package:scalesyncpro_firestore/utils/theme.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/detail_section_card.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/add_note_modal.dart';
-import 'package:scalesyncpro_firestore/widgets/animal_detail/add_activity_modal.dart';
-import 'package:scalesyncpro_firestore/screens/animal_detail_screen.dart';
+import 'package:scalesync_pro_ecosystem/models/reptile.dart';
+import 'package:scalesync_pro_ecosystem/models/activity_log.dart';
+import 'package:scalesync_pro_ecosystem/models/animal_note.dart';
+import 'package:scalesync_pro_ecosystem/services/reptile_service.dart';
+import 'package:scalesync_pro_ecosystem/services/storage_service.dart';
+import 'package:scalesync_pro_ecosystem/features/ScaleSyncPro/models/breeding_model.dart';
+import 'package:scalesync_pro_ecosystem/features/ScaleSyncPro/views/breeding_room_view.dart';
+import 'package:scalesync_pro_ecosystem/utils/theme.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/detail_section_card.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/add_note_modal.dart';
+import 'package:scalesync_pro_ecosystem/widgets/animal_detail/add_activity_modal.dart';
+import 'package:scalesync_pro_ecosystem/screens/animal_detail_screen.dart';
 
 class BreedingPairDetailScreen extends StatefulWidget {
   final BreedingPair pair;

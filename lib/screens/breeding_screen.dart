@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../features/pro/views/breeding_room_view.dart';
+import '../features/ScaleSyncPro/views/breeding_room_view.dart';
 
 class BreedingScreen extends StatelessWidget {
   const BreedingScreen({super.key});

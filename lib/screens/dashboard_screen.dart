@@ -10,9 +10,9 @@ import '../widgets/add_reptile_modal.dart';
 import '../widgets/add_breeding_modal.dart';
 import '../widgets/animal_detail/add_feeding_modal.dart';
 import '../services/reptile_service.dart';
-import 'package:scalesyncpro_firestore/widgets/add_task_modal.dart';
+import 'package:scalesync_pro_ecosystem/widgets/add_task_modal.dart';
 
-import '../features/pro/views/breeding_room_view.dart';
+import '../features/ScaleSyncPro/views/breeding_room_view.dart';
 import '../models/task_schedule.dart';
 import '../models/reptile.dart';
 import '../services/task_schedule_service.dart';

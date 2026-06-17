@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:scalesyncpro_firestore/widgets/stat_card.dart';
+import 'package:scalesync_pro_ecosystem/widgets/stat_card.dart';
 
 void main() {
   testWidgets('ScaleSyncPro StatCard rendering test', (WidgetTester tester) async {

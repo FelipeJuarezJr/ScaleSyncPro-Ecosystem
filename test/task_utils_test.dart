@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:scalesyncpro_firestore/models/reptile.dart';
-import 'package:scalesyncpro_firestore/models/task_schedule.dart';
-import 'package:scalesyncpro_firestore/utils/task_utils.dart';
+import 'package:scalesync_pro_ecosystem/models/reptile.dart';
+import 'package:scalesync_pro_ecosystem/models/task_schedule.dart';
+import 'package:scalesync_pro_ecosystem/utils/task_utils.dart';
 
 void main() {
   group('calculateTodayTasks tests', () {

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'config/firebase_config.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/main_app_screen.dart';
+import 'widgets/developer_scaffold.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
 import 'utils/theme.dart';
@@ -52,7 +53,7 @@ class ScaleSyncProApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeService.isDarkMode ? ThemeMode.dark : ThemeMode.light,
             home: authService.isAuthenticated
-                ? const MainAppScreen()
+                ? const DeveloperScaffold()
                 : const LoginScreen(),
           );
         },
