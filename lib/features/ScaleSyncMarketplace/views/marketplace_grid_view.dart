@@ -268,19 +268,19 @@ class _MarketplaceGridViewState extends ConsumerState<MarketplaceGridView> {
             ),
             const PopupMenuItem(
               value: 100.0,
-              child: Text('Under $100'),
+              child: Text('Under \$100'),
             ),
             const PopupMenuItem(
               value: 250.0,
-              child: Text('Under $250'),
+              child: Text('Under \$250'),
             ),
             const PopupMenuItem(
               value: 500.0,
-              child: Text('Under $500'),
+              child: Text('Under \$500'),
             ),
             const PopupMenuItem(
               value: 1000.0,
-              child: Text('Under $1000'),
+              child: Text('Under \$1000'),
             ),
           ],
         ),
