@@ -11,7 +11,9 @@ import 'services/theme_service.dart';
 import 'utils/theme.dart';
 import 'core/network/domain_guard.dart';
 import 'features/ScaleSyncMarketplace/views/marketplace_grid_view.dart';
+import 'features/ScaleSyncMarketplace/views/market_login_view.dart';
 import 'features/ScaleSyncSocial/views/social_feed_view.dart';
+import 'features/ScaleSyncSocial/views/social_login_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,13 +52,18 @@ class ScaleSyncProApp extends StatelessWidget {
         builder: (context, authService, themeService, child) {
           Widget getHomeWidget() {
             final target = DomainGuard.currentTarget;
+            final loggedIn = authService.isAuthenticated;
             switch (target) {
               case AppViewTarget.market:
-                return const MarketplaceGridView();
+                return loggedIn
+                    ? const MarketplaceGridView()
+                    : const MarketLoginView();
               case AppViewTarget.social:
-                return const SocialFeedView();
+                return loggedIn
+                    ? const SocialFeedView()
+                    : const SocialLoginView();
               case AppViewTarget.pro:
-                return authService.isAuthenticated
+                return loggedIn
                     ? const MainAppScreen()
                     : const LoginScreen();
             }

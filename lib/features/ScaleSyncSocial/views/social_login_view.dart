@@ -103,7 +103,9 @@ class _SocialLoginViewState extends State<SocialLoginView> with TickerProviderSt
             backgroundColor: AppTheme.successColor,
           ),
         );
-        Navigator.of(context).pop();
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -136,7 +138,9 @@ class _SocialLoginViewState extends State<SocialLoginView> with TickerProviderSt
             backgroundColor: AppTheme.successColor,
           ),
         );
-        Navigator.of(context).pop();
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -286,10 +290,12 @@ class _SocialLoginViewState extends State<SocialLoginView> with TickerProviderSt
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
       ),
       body: Stack(
         children: [

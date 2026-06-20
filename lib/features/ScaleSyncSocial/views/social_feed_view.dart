@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart' as legacy_provider;
+import 'package:scalesync_pro_ecosystem/services/auth_service.dart';
 import 'social_login_view.dart';
 
 class SocialFeedView extends StatelessWidget {
@@ -6,6 +8,9 @@ class SocialFeedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authService = legacy_provider.Provider.of<AuthService>(context);
+    final isLoggedIn = authService.isAuthenticated;
+
     final mockUpdates = [
       _MorphUpdatePost(
         breederName: 'MorphLabs Geneticist',
@@ -83,11 +88,15 @@ class SocialFeedView extends StatelessWidget {
                     ],
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SocialLoginView()),
-                      );
+                    onPressed: () async {
+                      if (isLoggedIn) {
+                        await authService.signOut();
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SocialLoginView()),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
@@ -99,9 +108,9 @@ class SocialFeedView extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     ),
-                    child: const Text(
-                      '[ JOIN_COMMUNITY ]',
-                      style: TextStyle(
+                    child: Text(
+                      isLoggedIn ? '[ SIGN_OUT ]' : '[ JOIN_COMMUNITY ]',
+                      style: const TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 11,
                         fontWeight: FontWeight.bold,

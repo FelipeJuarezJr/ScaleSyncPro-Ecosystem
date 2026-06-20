@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:scalesync_pro_ecosystem/utils/theme.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart' as legacy_provider;
+import 'package:scalesync_pro_ecosystem/services/auth_service.dart';
 import 'market_login_view.dart';
 
 // ==========================================
@@ -190,6 +192,9 @@ class _MarketplaceGridViewState extends ConsumerState<MarketplaceGridView> {
   }
 
   Widget _buildHeader(ThemeData theme, bool isDark) {
+    final authService = legacy_provider.Provider.of<AuthService>(context);
+    final isLoggedIn = authService.isAuthenticated;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -240,11 +245,15 @@ class _MarketplaceGridViewState extends ConsumerState<MarketplaceGridView> {
         ),
         const SizedBox(width: 16),
         ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MarketLoginView()),
-            );
+          onPressed: () async {
+            if (isLoggedIn) {
+              await authService.signOut();
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MarketLoginView()),
+              );
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF1E1E1E),
@@ -256,9 +265,9 @@ class _MarketplaceGridViewState extends ConsumerState<MarketplaceGridView> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
-          child: const Text(
-            '[ SIGN_IN_TO_LIST ]',
-            style: TextStyle(
+          child: Text(
+            isLoggedIn ? '[ SIGN_OUT ]' : '[ SIGN_IN_TO_LIST ]',
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               letterSpacing: 1,
