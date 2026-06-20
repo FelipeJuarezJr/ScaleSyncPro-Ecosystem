@@ -26,12 +26,6 @@
   <title>ScaleSyncPro</title>
   <link rel="manifest" href="manifest.json">
 
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = {{flutter_service_worker_version}};
-  </script>
-  <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
 
   <style>
     body {
@@ -126,29 +120,6 @@
     </div>
   </div>
 
-  <script>
-    window.addEventListener('load', function(ev) {
-      // Download main.dart.js
-      _flutter.loader.load({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp().then(function() {
-              // Smoothly transition and hide splash screen once Flutter has run
-              const splash = document.getElementById('splash-screen');
-              if (splash) {
-                splash.classList.add('hidden');
-                setTimeout(function() {
-                  splash.remove();
-                }, 400); // Matches CSS transition duration
-              }
-            });
-          });
-        }
-      });
-    });
-  </script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html> 
