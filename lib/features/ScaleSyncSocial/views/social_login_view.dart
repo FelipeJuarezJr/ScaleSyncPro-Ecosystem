@@ -433,13 +433,13 @@ class _SocialLoginViewState extends State<SocialLoginView> with TickerProviderSt
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    Icons.people_outline,
+                                    Icons.drag_indicator,
                                     size: 44,
                                     color: AppTheme.primaryColor,
                                   ),
                                   SizedBox(width: 10),
                                   Text(
-                                    'ScaleSyncSocial',
+                                    'ScaleSync Social',
                                     style: TextStyle(
                                       fontSize: 26,
                                       fontWeight: FontWeight.bold,

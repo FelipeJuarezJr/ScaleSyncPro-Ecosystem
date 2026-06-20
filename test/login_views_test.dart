@@ -58,7 +58,7 @@ void main() {
     );
 
     // Verify Title Branding
-    expect(find.text('ScaleSyncMarketplace'), findsOneWidget);
+    expect(find.text('ScaleSync Marketplace'), findsOneWidget);
     expect(find.text('Welcome Back'), findsOneWidget);
     expect(find.text('Sign in to list items and message breeders'), findsOneWidget);
 
@@ -89,7 +89,7 @@ void main() {
     );
 
     // Verify Title Branding
-    expect(find.text('ScaleSyncSocial'), findsOneWidget);
+    expect(find.text('ScaleSync Social'), findsOneWidget);
     expect(find.text('Welcome Back'), findsOneWidget);
     expect(find.text('Sign in to join the community and share updates'), findsOneWidget);
 

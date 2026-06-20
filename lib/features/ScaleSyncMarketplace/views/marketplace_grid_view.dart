@@ -462,27 +462,18 @@ class _MarketplaceGridViewState extends ConsumerState<MarketplaceGridView> {
             // Left: Logo and Brand Name
             Row(
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFA5E644), // brand green
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '🐍',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
+                Icon(
+                  Icons.drag_indicator,
+                  size: 32,
+                  color: AppTheme.primaryColor,
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'ScaleMarket',
+                  'ScaleSync Marketplace',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppTheme.primaryColor,
                   ),
                 ),
               ],
@@ -649,7 +640,7 @@ class _MarketplaceGridViewState extends ConsumerState<MarketplaceGridView> {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'ScaleMarket',
+                    'ScaleSync Marketplace',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

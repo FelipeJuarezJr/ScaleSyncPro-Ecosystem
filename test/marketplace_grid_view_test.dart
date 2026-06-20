@@ -157,7 +157,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     // Verify Sticky Top Nav logo and title
-    expect(find.text('ScaleMarket'), findsOneWidget);
+    expect(find.text('ScaleSync Marketplace'), findsOneWidget);
 
     // Verify Search Box hint text
     expect(find.text('Search reptiles, morphs, sellers...'), findsOneWidget);

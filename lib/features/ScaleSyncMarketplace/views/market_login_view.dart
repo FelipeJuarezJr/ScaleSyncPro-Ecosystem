@@ -389,13 +389,13 @@ class _MarketLoginViewState extends State<MarketLoginView> with TickerProviderSt
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    Icons.storefront,
+                                    Icons.drag_indicator,
                                     size: 44,
                                     color: AppTheme.primaryColor,
                                   ),
                                   SizedBox(width: 10),
                                   Text(
-                                    'ScaleSyncMarketplace',
+                                    'ScaleSync Marketplace',
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,

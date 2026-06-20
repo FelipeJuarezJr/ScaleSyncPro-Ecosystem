@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart' as legacy_provider;
 import 'package:scalesync_pro_ecosystem/services/auth_service.dart';
+import 'package:scalesync_pro_ecosystem/utils/theme.dart';
 import 'social_login_view.dart';
 
 class SocialFeedView extends StatelessWidget {
@@ -10,6 +11,8 @@ class SocialFeedView extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = legacy_provider.Provider.of<AuthService>(context);
     final isLoggedIn = authService.isAuthenticated;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth <= 768;
 
     final mockUpdates = [
       _MorphUpdatePost(
@@ -66,23 +69,18 @@ class SocialFeedView extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF00FF00),
-                          shape: BoxShape.circle,
-                        ),
+                      Icon(
+                        Icons.drag_indicator,
+                        size: isMobile ? 24 : 32,
+                        color: AppTheme.primaryColor,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'SCALESYNC SOCIAL',
+                      Text(
+                        'ScaleSync Social',
                         style: TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 12,
+                          fontSize: isMobile ? 18 : 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF00FF00),
-                          letterSpacing: 1.5,
+                          color: AppTheme.primaryColor,
                         ),
                       ),
                     ],
@@ -100,9 +98,9 @@ class SocialFeedView extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
-                      foregroundColor: const Color(0xFF00FF00),
+                      foregroundColor: AppTheme.primaryColor,
                       elevation: 0,
-                      side: const BorderSide(color: Color(0xFF00FF00), width: 1),
+                      side: const BorderSide(color: AppTheme.primaryColor, width: 1),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
