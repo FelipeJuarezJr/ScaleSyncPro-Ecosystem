@@ -67,6 +67,8 @@ class AuthService extends ChangeNotifier {
 
       if (kIsWeb) {
         final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
         await _auth.signInWithPopup(googleProvider);
 
         if (kDebugMode) {
@@ -104,6 +106,13 @@ class AuthService extends ChangeNotifier {
         if (e is FirebaseAuthException) {
           print('Firebase Auth Code: ${e.code}');
           print('Firebase Auth Message: ${e.message}');
+          if (e.code == 'unauthorized-domain') {
+            print('⚠️ UNAUTHORIZED DOMAIN: This production domain is not in Firebase Auth authorized domains.');
+            print('   Fix: Firebase Console → Authentication → Settings → Authorized domains');
+            print('   Add: scalesync-marketplace.web.app and scalesync-social.web.app');
+            print('   Also: Google Cloud Console → APIs & Services → Credentials → OAuth Web Client');
+            print('   Add both domains to Authorized JavaScript Origins + redirect URIs');
+          }
         } else if (e.toString().contains('ApiException: 10')) {
           print('⚠️ DEVELOPER_ERROR (10): Check that:');
           print('   1. SHA-1 fingerprint is registered in scalesync-pro Firebase Console');

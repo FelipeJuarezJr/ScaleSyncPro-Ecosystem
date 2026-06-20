@@ -144,25 +144,32 @@ class _SocialLoginViewState extends State<SocialLoginView> with TickerProviderSt
       }
     } catch (e) {
       if (mounted) {
-        String errorMessage = 'Google sign in failed';
-        
-        if (e.toString().contains('network')) {
-          errorMessage = 'Network error. Please check your internet connection.';
-        } else if (e.toString().contains('sign_in_failed')) {
-          errorMessage = 'Sign in failed. Please try again.';
-        } else if (e.toString().contains('popup')) {
+        final err = e.toString();
+        String errorMessage;
+
+        if (err.contains('unauthorized-domain') || err.contains('auth/unauthorized-domain')) {
+          errorMessage = 'This domain is not authorized for Google Sign-In. Contact support.';
+        } else if (err.contains('cancelled-popup-request') || err.contains('popup-closed-by-user')) {
+          errorMessage = 'Sign-in cancelled. Please try again.';
+          setState(() { _isLoading = false; });
+          return;
+        } else if (err.contains('popup-blocked') || err.contains('popup')) {
           errorMessage = 'Popup was blocked. Please allow popups for this site.';
-        } else if (e.toString().contains('People API') || e.toString().contains('SERVICE_DISABLED')) {
-          errorMessage = 'Google Sign-In requires People API to be enabled. Please contact administrator.';
+        } else if (err.contains('network-request-failed') || err.contains('network')) {
+          errorMessage = 'Network error. Please check your internet connection.';
+        } else if (err.contains('sign_in_failed')) {
+          errorMessage = 'Sign in failed. Please try again.';
+        } else if (err.contains('People API') || err.contains('SERVICE_DISABLED')) {
+          errorMessage = 'Google Sign-In requires People API to be enabled. Contact administrator.';
         } else {
-          errorMessage = 'Google sign in failed: ${e.toString()}';
+          errorMessage = 'Google sign in failed: $err';
         }
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
             backgroundColor: AppTheme.dangerColor,
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 5),
           ),
         );
         setState(() {
