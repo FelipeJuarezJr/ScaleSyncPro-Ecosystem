@@ -84,7 +84,10 @@ class AuthService extends ChangeNotifier {
 
         if (googleUser == null) {
           if (kDebugMode) print('Google Sign-In cancelled by user');
-          return;
+          throw FirebaseAuthException(
+            code: 'popup-closed-by-user',
+            message: 'Google Sign-In cancelled by user',
+          );
         }
 
         final GoogleSignInAuthentication googleAuth = await googleUser.authentication;

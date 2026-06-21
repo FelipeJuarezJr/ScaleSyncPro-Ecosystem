@@ -3,8 +3,7 @@ import 'package:provider/provider.dart' as legacy_provider;
 import 'package:scalesync_pro_ecosystem/services/auth_service.dart';
 import 'package:scalesync_pro_ecosystem/services/theme_service.dart';
 import 'package:scalesync_pro_ecosystem/utils/theme.dart';
-import 'social_login_view.dart';
-import 'dart:math' as math;
+import 'package:scalesync_pro_ecosystem/features/ScaleSyncSocial/views/social_login_view.dart';
 
 class SocialFeedView extends StatefulWidget {
   const SocialFeedView({super.key});
@@ -14,9 +13,9 @@ class SocialFeedView extends StatefulWidget {
 }
 
 class _SocialFeedViewState extends State<SocialFeedView> {
-  String _activeMobileTab = 'Feed'; // 'Feed' | 'Analytics' | 'Control'
   String _feedFilter = 'All'; // 'All' | 'Media' | 'Text'
   final TextEditingController _broadcastController = TextEditingController();
+  final FocusNode _composerFocusNode = FocusNode();
   final List<String> _myPosts = [];
 
   // Likes state tracking
@@ -25,7 +24,97 @@ class _SocialFeedViewState extends State<SocialFeedView> {
   @override
   void dispose() {
     _broadcastController.dispose();
+    _composerFocusNode.dispose();
     super.dispose();
+  }
+
+  void _focusPostComposer() {
+    _composerFocusNode.requestFocus();
+  }
+
+  void _showMobilePostSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.bgSecondary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 20,
+            left: 16,
+            right: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Create Broadcast',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _broadcastController,
+                maxLines: 4,
+                autofocus: true,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: "What's happening in your terrarium?",
+                  hintStyle: TextStyle(color: AppTheme.textLight, fontSize: 14),
+                  fillColor: Colors.transparent,
+                  filled: true,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_broadcastController.text.trim().isEmpty) return;
+                      setState(() {
+                        _myPosts.insert(0, _broadcastController.text.trim());
+                        _broadcastController.clear();
+                      });
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text('Publish'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -39,40 +128,54 @@ class _SocialFeedViewState extends State<SocialFeedView> {
 
     final mockUpdates = [
       _MorphUpdatePost(
-        breederName: 'MorphLabs Geneticist',
-        avatarText: 'ML',
-        timeAgo: '12m ago',
-        morphTitle: 'Super Pastel Pied Clutch Hatched!',
-        morphContent: 'Incredible success today with our Pied lines. Out of 6 eggs, 4 hatched with full visual expression. High-white patterns and bright yellow coloration are showing exceptional high-contrast marks. Pedigree logging synced.',
-        morphTags: ['Super Pastel', 'Piebald', 'Verified Lineage'],
-        likes: 42,
-        comments: 8,
-        shares: 15,
+        breederName: 'ArborealMaster',
+        avatarText: 'AM',
+        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAH2HlNAj5IGHCTDASrsdxHflXVOQn36zgtJXeig9PJ7hFs0jsBuoSA0Gan2kpxC5_xkDRVzI1zRrbUhMpFniUudiFgRHBLlymJ-SJ-MDW5Ip7Y5SPWbGL6BBsaydw2BUMerLD7J7pjXULIwWAm6VvSk6dl7N83aQbMZ-F0Ui_D0CZt8i7MqFSD5aqRLpQ16WejYNagGPlDJ-s-oDLa5TnzUgk7ZrI2E7qivZ_gLDl1xni4zA-VPjqQrkPNYiRpAQ7Rb2nhkJ9wXMM',
+        timeAgo: '2h ago',
+        subtitle: 'Morelia viridis',
+        morphTitle: 'Morning glow on the Biak.',
+        morphContent: 'Just look at that contrast! This Biak locality is finally starting to show those deep yellows and high-contrast greens after its last shed. Maintaining 82% humidity and a steady 84°F hotspot.',
+        morphTags: ['GreenTreePython', 'BiakLocality'],
+        likes: 1200,
+        comments: 84,
+        shares: 5,
         hasMedia: true,
+        mediaUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC8A00HI6-gr9_6JK-4AXyAgsjZLGk6BgG2WZm-UFT4R4LsDMFaMTfFpBxaVPLHuIauRfPI4Wizx6QzPTg7KfpopNS_bR9JdoVHCIAchR2Ra5mX5ESL7FLTFTZ3-MWW90vr8T9dgNQVyI_0rXkXIWttjhVu1o_KfrQ8V7gfsc2wmjnJBL-4YHiXkuIEWOPdUglpaQf22uAtB0y29wZmlESMND9SffvtUmNpGDRez0SA0UsVTqCeW72YPtFl43zYxEi9nFSITM-ZsRk',
       ),
       _MorphUpdatePost(
-        breederName: 'Krypton Reptiles',
-        avatarText: 'KR',
-        timeAgo: '1h ago',
-        morphTitle: 'Banana Clown Weight Log Verified',
-        morphContent: 'Just updated our official facility rack log. Our primary male has officially hit 980g, showing stable growth curves. View the verified lineage path under ScaleSync Pro network code nodes.',
-        morphTags: ['Banana Clown', 'Rack Logs', 'Pedigree Sync'],
-        likes: 29,
-        comments: 3,
-        shares: 4,
-        hasMedia: false,
+        breederName: 'DesertDragon92',
+        avatarText: 'DD',
+        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHXU_6BWFTCLD97Cl1Gf2cp9lSUcuTHwz5KwH6wkunSPpHQ712LU6UPFZQHlXJ8HhSadCsIxLCBXtMFss6__YFtcPVH6eFAs7DedjretZe_zibjEHpIGh4MQHL57VelVYxCowhR4yRksRxzKyoeoMnoeL_neeoxHk7wp1FwWe4AYV7F0_jrkDWaZt2oBPE6IjY1IlYfjwFAVMXsUoKBlOs2lZjNdGEVCMwKzRfz34btJtxgqU2t0UQoseCtX7XXcYaz3ZZNUSftOk',
+        timeAgo: '5h ago',
+        subtitle: 'Feeding Time',
+        morphTitle: 'Lunch time for Spike!',
+        morphContent: "Lunch time for Spike! Watching the hunt drive in these animals never gets old. He's up to 450g now and looking healthy.",
+        morphTags: ['BeardedDragon', 'Feeding'],
+        likes: 345,
+        comments: 28,
+        shares: 2,
+        hasMedia: true,
+        mediaUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAs3nf7fxWMGVUs0HwBaCyRiyQzgQcQ8CUXfl0m4_rSJH4fjPpX0wMf-8C04Tf4ouMa8unIcCYSb5FK6MOtXL9ZP1O0Rp903RKoUHUeeQ0aDTMoEp_0pHE204uJ9poibAJVcNqbhqfIHeDv-C9vG5-ACRRhnMRFursKDc30yXDI9MR4F-h4JuaAQwoj4Xe80niwm8vbjWxr5YtawpqsErSmfF59m6O2IQ7xs0KHsNMXOJk22TNEbbHZUCOelqJdO-9N_uB3x60cXyg',
+        isVideo: true,
+        stats: {
+          'Temperature': '105°F',
+          'Humidity': '15%',
+          'Supplement': 'Ca + D3',
+        },
       ),
       _MorphUpdatePost(
-        breederName: 'Desert Herps',
-        avatarText: 'DH',
-        timeAgo: '4h ago',
-        morphTitle: 'Albino Green Tree Python Update',
-        morphContent: 'First shed complete! The neon yellow phase is extremely vivid. We have logged their shed records and temperatures successfully into the blockchain tracker for buyers to inspect.',
-        morphTags: ['Albino GTP', 'First Shed', 'Public Incubator'],
-        likes: 56,
+        breederName: 'NewKeeper_Leo',
+        avatarText: 'NL',
+        avatarIcon: Icons.help_outline,
+        timeAgo: '8h ago',
+        subtitle: 'Husbandry Question',
+        morphTitle: 'Struggling with night-time temp drops for my Ball Python...',
+        morphContent: "I'm using a 100W CHE on a thermostat, but the ambient temps in the cool side are dropping to 72°F at night. My house is drafty. Is a secondary under-tank heater necessary, or should I insulate the enclosure better?",
+        morphTags: ['BallPython', 'EnclosureDesign', 'HusbandryHelp'],
+        likes: 18,
         comments: 12,
-        shares: 22,
-        hasMedia: true,
+        shares: 1,
+        hasMedia: false,
       ),
     ];
 
@@ -86,6 +189,7 @@ class _SocialFeedViewState extends State<SocialFeedView> {
           breederName: authService.currentUser?.email?.split('@').first ?? 'You',
           avatarText: 'U',
           timeAgo: 'Just now',
+          subtitle: 'Broadcast Node',
           morphTitle: 'Broadcast Update',
           morphContent: _myPosts[i],
           morphTags: ['Broadcast', 'LiveFeed'],
@@ -107,88 +211,55 @@ class _SocialFeedViewState extends State<SocialFeedView> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: AppTheme.bgPrimary, // Obsidian dark
+      backgroundColor: AppTheme.bgPrimary,
+      floatingActionButton: isMobile
+          ? FloatingActionButton(
+              onPressed: () => _showMobilePostSheet(context),
+              backgroundColor: AppTheme.accentColor,
+              child: const Icon(Icons.edit_square, color: Colors.white),
+            )
+          : null,
       body: SafeArea(
         child: Column(
           children: [
             // Top Navigation & Brand Header
             _buildHeader(context, authService, isLoggedIn, isMobile),
 
-            // Telemetry stats row (always visible on top, wrapping dynamically)
-            _buildStatsStrip(allPosts, isMobile),
-
-            // Segmented Tab switcher for mobile viewports
-            if (isMobile) _buildMobileTabsSelector(),
-
             // Main Columns Section
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Builder(
-                  builder: (context) {
-                    if (isDesktop) {
-                      // 3-Column Layout: Feed | Charts | Control Deck
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 12,
-                            child: _buildFeedColumn(filteredPosts),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            flex: 10,
-                            child: _buildAnalyticsColumn(allPosts.length),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            flex: 10,
-                            child: _buildControlColumn(),
-                          ),
-                        ],
-                      );
-                    } else if (isTablet) {
-                      // 2-Column Layout: Feed | Right Panel (Analytics + Control)
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 6,
-                            child: _buildFeedColumn(filteredPosts),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            flex: 5,
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  _buildAnalyticsColumn(allPosts.length),
-                                  const SizedBox(height: 20),
-                                  _buildControlColumn(),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      // Mobile View: Renders only active tab
-                      switch (_activeMobileTab) {
-                        case 'Analytics':
-                          return SingleChildScrollView(
-                            child: _buildAnalyticsColumn(allPosts.length),
-                          );
-                        case 'Control':
-                          return SingleChildScrollView(
-                            child: _buildControlColumn(),
-                          );
-                        case 'Feed':
-                        default:
-                          return _buildFeedColumn(filteredPosts);
-                      }
-                    }
-                  },
-                ),
+              child: Builder(
+                builder: (context) {
+                  if (isDesktop) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SidebarNavigation(
+                          isTablet: false,
+                          onPostPressed: _focusPostComposer,
+                        ),
+                        Expanded(
+                          child: _buildFeedColumn(filteredPosts, false),
+                        ),
+                        const _RightSidebar(),
+                      ],
+                    );
+                  } else if (isTablet) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SidebarNavigation(
+                          isTablet: true,
+                          onPostPressed: _focusPostComposer,
+                        ),
+                        Expanded(
+                          child: _buildFeedColumn(filteredPosts, false),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return _buildFeedColumn(filteredPosts, true);
+                  }
+                },
               ),
             ),
           ],
@@ -273,764 +344,1197 @@ class _SocialFeedViewState extends State<SocialFeedView> {
     );
   }
 
-  // --- Telemetry Stats Strip ---
-  Widget _buildStatsStrip(List<_MorphUpdatePost> posts, bool isMobile) {
-    final totalLikes = posts.fold(0, (sum, p) => sum + p.likes) + _likedPostIndices.length;
-    final mediaCount = posts.where((p) => p.hasMedia).length;
-    final mediaRatio = posts.isNotEmpty ? (mediaCount / posts.length * 100).round() : 0;
-    final reach = posts.length * 145 + 320;
-    final engagement = posts.isNotEmpty ? ((totalLikes / posts.length) * 0.8 + 2.1).toStringAsFixed(1) : '0.0';
-
-    if (isMobile) {
-      // In mobile, display compact stats grid layout
-      return Container(
-        padding: const EdgeInsets.all(12),
-        color: const Color(0xFF131313),
-        child: GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          childAspectRatio: 2.8,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          children: [
-            _buildStatItem('Reach', reach.toString(), '+12.4%', Icons.visibility, Colors.green),
-            _buildStatItem('Likes', totalLikes.toString(), '+8.2%', Icons.favorite, AppTheme.primaryLight),
-            _buildStatItem('Engagement', '$engagement%', '+0.5%', Icons.analytics, AppTheme.accentColor),
-            _buildStatItem('Media Ratio', '$mediaRatio%', '$mediaCount/posts', Icons.photo_library, Colors.purple),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      color: const Color(0xFF131313),
-      child: Row(
+  // --- Column 2: Feed Column ---
+  Widget _buildFeedColumn(List<_MorphUpdatePost> posts, bool isMobile) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _buildStatItem('Total Reach', reach.toString(), '+12.4%', Icons.visibility, Colors.green)),
-          const SizedBox(width: 15),
-          Expanded(child: _buildStatItem('Total Likes', totalLikes.toString(), '+8.2%', Icons.favorite, AppTheme.primaryLight)),
-          const SizedBox(width: 15),
-          Expanded(child: _buildStatItem('Engagement', '$engagement%', '+0.5%', Icons.analytics, AppTheme.accentColor)),
-          const SizedBox(width: 15),
-          Expanded(child: _buildStatItem('Media Ratio', '$mediaRatio%', '$mediaCount of ${posts.length} posts', Icons.photo_library, Colors.purple)),
+          const SizedBox(height: 16),
+          // Title & Filter Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Terrarium Feed',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // Segmented Filter Control
+              Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: AppTheme.bgSecondary,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: ['All', 'Media', 'Text'].map((filter) {
+                    final isSelected = _feedFilter == filter;
+                    return InkWell(
+                      onTap: () => setState(() => _feedFilter = filter),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppTheme.bgTertiary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          filter,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : AppTheme.textLight,
+                            fontSize: 11,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Scrollable List
+          Expanded(
+            child: ListView.builder(
+              itemCount: posts.length + (isMobile ? 0 : 1),
+              itemBuilder: (context, index) {
+                if (!isMobile) {
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: _PostComposerCard(
+                        controller: _broadcastController,
+                        focusNode: _composerFocusNode,
+                        onPublish: () {
+                          if (_broadcastController.text.trim().isEmpty) return;
+                          setState(() {
+                            _myPosts.insert(0, _broadcastController.text.trim());
+                            _broadcastController.clear();
+                          });
+                        },
+                        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDvfta9v30KVAVz2SlBVXmJPSQ_8oU-K-vzRn58YYbuuLeywC-MDkfuoh4M23GoYae2UukM2_M3ht8-lSHWBf4CwCEIyIRS2Nns8-LuqClcmmzU8FZ_x0LJxzvK_jv3Hzoq5wT73s2Eed8KWeZ-wpTXyTnpQd2anMmRS71HAyXAQy7Ezk8ph4QkYog5xlWJSaAyG8GCXpvWSv-FWarDXpUNVg0iMMwDTWYNaHLVCNfHcYOJ_-mtUl9bUb80xxSVQixen1dKjUCmYBQ',
+                      ),
+                    );
+                  }
+                  final post = posts[index - 1];
+                  final liked = _likedPostIndices.contains(index - 1);
+                  return _SocialPostCard(
+                    post: post,
+                    isLiked: liked,
+                    onLikeToggle: () {
+                      setState(() {
+                        if (liked) {
+                          _likedPostIndices.remove(index - 1);
+                        } else {
+                          _likedPostIndices.add(index - 1);
+                        }
+                      });
+                    },
+                  );
+                } else {
+                  final post = posts[index];
+                  final liked = _likedPostIndices.contains(index);
+                  return _SocialPostCard(
+                    post: post,
+                    isLiked: liked,
+                    onLikeToggle: () {
+                      setState(() {
+                        if (liked) {
+                          _likedPostIndices.remove(index);
+                        } else {
+                          _likedPostIndices.add(index);
+                        }
+                      });
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- Left Navigation Sidebar ---
+class _SidebarNavigation extends StatelessWidget {
+  final bool isTablet;
+  final VoidCallback onPostPressed;
+
+  const _SidebarNavigation({
+    required this.isTablet,
+    required this.onPostPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: isTablet ? 200 : 250,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F0F0F),
+        border: Border(
+          right: BorderSide(color: Color(0xFF222222), width: 1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          _buildNavItem('Home', Icons.home, true),
+          _buildNavItem('Discover', Icons.explore, false),
+          _buildNavItem('Notifications', Icons.notifications_none, false, badgeCount: 2),
+          _buildNavItem('Messages', Icons.chat_bubble_outline, false),
+          _buildNavItem('Profile', Icons.person_outline, false),
+          _buildNavItem('Settings', Icons.settings_outlined, false),
+          const Spacer(),
+          ElevatedButton(
+            onPressed: onPostPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentColor,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 44),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.add_circle_outline, size: 18),
+                if (!isTablet) ...[
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Post Specimen',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value, String subText, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppTheme.bgSecondary.withOpacity(0.4),
+  Widget _buildNavItem(String title, IconData icon, bool isActive, {int badgeCount = 0}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: InkWell(
+        onTap: () {},
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: isActive ? AppTheme.primaryColor.withOpacity(0.08) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(color: AppTheme.textLight, fontSize: 10, fontWeight: FontWeight.w500),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace',
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              if (!isTablet)
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: isActive ? AppTheme.primaryColor : AppTheme.textSecondary,
+                      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
-              ],
+              if (badgeCount > 0 && !isTablet)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    badgeCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// --- Right Sidebar ---
+class _RightSidebar extends StatefulWidget {
+  const _RightSidebar();
+
+  @override
+  State<_RightSidebar> createState() => _RightSidebarState();
+}
+
+class _RightSidebarState extends State<_RightSidebar> {
+  final Set<String> _followedBreeders = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Trending Section
+            _buildTrendingSection(),
+            const SizedBox(height: 20),
+            // Top Tier Breeders
+            _buildBreedersSection(),
+            const SizedBox(height: 20),
+            // Activity Heatmap
+            _buildActivitySection(),
+            const SizedBox(height: 20),
+            // Footer
+            _buildFooterSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrendingSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSecondary,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.trending_up, color: AppTheme.primaryColor, size: 18),
+              const SizedBox(width: 8),
+              const Text(
+                'Trending Herps',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _buildTrendingItem('Species Spotlight', '#LeopardGeckoCare', '2.4k posts this week'),
+          _buildTrendingItem('Genetics', '#BallPythonMorphs', '1.8k posts this week'),
+          _buildTrendingItem('Bioactive', '#TerrariumDesign', '940 posts this week'),
+          _buildTrendingItem('Conservation', '#AustralianAgamids', '520 posts this week'),
+          const SizedBox(height: 4),
+          TextButton(
+            onPressed: () {},
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Show more',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
             ),
           ),
-          Text(
-            subText,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrendingItem(String category, String hashtag, String stats) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: InkWell(
+        onTap: () {},
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              category,
+              style: const TextStyle(color: AppTheme.textLight, fontSize: 10),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              hashtag,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              stats,
+              style: const TextStyle(color: AppTheme.primaryColor, fontSize: 10),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBreedersSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSecondary,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Top Tier Breeders',
             style: TextStyle(
-              color: subText.startsWith('+') ? Colors.green : AppTheme.textLight,
-              fontSize: 10,
+              color: Colors.white,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
           ),
+          const SizedBox(height: 14),
+          _buildBreederRow(
+            'Apex Herpetics',
+            'Specializing in Boas',
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuAaK-o3mJDY-DkX-foC9845d-SnkR4GwfEA5ode1xOA-dDnFURa5UM1gHzk5JVh-1S80WiJf4R3yu1qKtBZL-U_dbe-i8CgSRpyVtWY2rY6Aazq25i4372bcMzJfZsRj8SmgdKr69A2GuIUNpKkdfQe-KGiEv-UVCwIMMJ-znr5L3iSpguskbXW-eyzpKmm1jZrr2E2lJ66OxNqLhCRwwrphrzVZh0kU4hFJnpMCBcUncXM_OA3aL30UYB2mdZrM_nbc2IBqUinH2U',
+          ),
+          const SizedBox(height: 12),
+          _buildBreederRow(
+            'Jewel Geckos',
+            'Rare Phelsuma lines',
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuDMnO5al9AKLtljtP7de1KIzJvmDyGPcbOJqy8sQjVHcYNnhs2mg_rJvfuOGP-VYQPe0E6OWh2M8hWp1YBhpLuLZsdkseGpxqXZnCGIfuTE6SE-Hz5PmsTQM9F8aTvAmsNPNvyB6CTHk-LcuaqJ9nDiga4Q5ZRhf1W0Mh165akm2k4zUDIW9kiCQSae2GEYU6lzv5A2l2tx_UAXuiszkeZoYNMVe0ljn6EBpT0Vlhucbagot33Cv9kJLt0fdIK3MkJT8pwnHAIdYJM',
+          ),
         ],
       ),
     );
   }
 
-  // --- Mobile Tab bar ---
-  Widget _buildMobileTabsSelector() {
-    return Container(
-      color: const Color(0xFF0F0F0F),
-      child: Row(
-        children: ['Feed', 'Analytics', 'Control'].map((tab) {
-          final isActive = _activeMobileTab == tab;
-          return Expanded(
-            child: InkWell(
-              onTap: () => setState(() => _activeMobileTab = tab),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: isActive ? AppTheme.primaryColor : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  tab,
-                  style: TextStyle(
-                    color: isActive ? Colors.white : AppTheme.textLight,
-                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // --- Column 1: Telemetry Feed ---
-  Widget _buildFeedColumn(List<_MorphUpdatePost> posts) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildBreederRow(String name, String specialty, String imageUrl) {
+    final isFollowing = _followedBreeders.contains(name);
+    return Row(
       children: [
-        // Column Header with filters
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.rss_feed, color: AppTheme.primaryLight, size: 18),
-                SizedBox(width: 8),
-                Text(
-                  'Telemetry Feed',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: AppTheme.bgTertiary,
+              child: const Icon(Icons.business, color: Colors.white, size: 16),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.black38,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: ['All', 'Media', 'Text'].map((filter) {
-                  final active = _feedFilter == filter;
-                  return InkWell(
-                    onTap: () => setState(() => _feedFilter = filter),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: active ? AppTheme.bgTertiary.withOpacity(0.5) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        filter,
-                        style: TextStyle(
-                          color: active ? Colors.white : AppTheme.textLight,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: 15),
-
-        // Posts List
+        const SizedBox(width: 10),
         Expanded(
-          child: posts.isEmpty
-              ? Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(40),
-                  decoration: BoxDecoration(
-                    color: AppTheme.bgSecondary.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.borderColor.withOpacity(0.2)),
-                  ),
-                  child: const Text('No telemetry feed items matched this filter.', style: TextStyle(color: AppTheme.textLight)),
-                )
-              : ListView.builder(
-                  itemCount: posts.length,
-                  itemBuilder: (context, index) {
-                    final post = posts[index];
-                    final liked = _likedPostIndices.contains(index);
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 15),
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        color: AppTheme.bgSecondary.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.borderColor.withOpacity(0.2)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: const Color(0xFF1E1E1E),
-                                child: Text(
-                                  post.avatarText,
-                                  style: const TextStyle(
-                                    color: AppTheme.primaryColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      post.breederName,
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                                    ),
-                                    Text(
-                                      post.timeAgo,
-                                      style: const TextStyle(color: AppTheme.textLight, fontSize: 9, fontFamily: 'monospace'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.verified, color: AppTheme.primaryColor, size: 14),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          if (post.morphTitle != 'Broadcast Update')
-                            Text(
-                              post.morphTitle,
-                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                            ),
-                          const SizedBox(height: 6),
-                          Text(
-                            post.morphContent,
-                            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
-                          ),
-                          const SizedBox(height: 12),
-                          if (post.hasMedia)
-                            Container(
-                              height: 150,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Colors.black26,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: _buildMediaPlaceholder(post.morphTitle),
-                            ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: post.morphTags.map((tag) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withOpacity(0.05),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
-                                ),
-                                child: Text(
-                                  '#$tag',
-                                  style: const TextStyle(fontFamily: 'monospace', fontSize: 9, color: AppTheme.primaryColor),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: 12),
-                          const Divider(color: Color(0xFF222222)),
-                          Row(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    if (liked) {
-                                      _likedPostIndices.remove(index);
-                                    } else {
-                                      _likedPostIndices.add(index);
-                                    }
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        liked ? Icons.favorite : Icons.favorite_border,
-                                        color: liked ? AppTheme.primaryColor : AppTheme.textLight,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '${post.likes + (liked ? 1 : 0)} Likes',
-                                        style: TextStyle(
-                                          color: liked ? AppTheme.primaryColor : AppTheme.textLight,
-                                          fontSize: 11,
-                                          fontFamily: 'monospace',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 20),
-                              Row(
-                                children: [
-                                  const Icon(Icons.mode_comment_outlined, color: AppTheme.textLight, size: 16),
-                                  const SizedBox(width: 6),
-                                  Text('${post.comments} Comments', style: const TextStyle(color: AppTheme.textLight, fontSize: 11, fontFamily: 'monospace')),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
+              ),
+              Text(
+                specialty,
+                style: const TextStyle(color: AppTheme.textLight, fontSize: 10),
+              ),
+            ],
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              if (isFollowing) {
+                _followedBreeders.remove(name);
+              } else {
+                _followedBreeders.add(name);
+              }
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isFollowing ? AppTheme.bgTertiary : Colors.white,
+            foregroundColor: isFollowing ? Colors.white : Colors.black,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(
+            isFollowing ? 'Following' : 'Follow',
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildMediaPlaceholder(String title) {
-    // Elegant SVG-like design using Flutter layout widgets to look highly premium without broken URL images
+  Widget _buildActivitySection() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF1E3A1E), Color(0xFF0D1E0D)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSecondary,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bar_chart, color: AppTheme.primaryColor, size: 18),
+              const SizedBox(width: 8),
+              const Text(
+                'Community Activity',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Bar Chart simulated
+          SizedBox(
+            height: 60,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildActivityBar(0.3),
+                _buildActivityBar(0.6),
+                _buildActivityBar(0.45),
+                _buildActivityBar(0.9),
+                _buildActivityBar(1.0),
+                _buildActivityBar(0.7),
+                _buildActivityBar(0.55),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Community growth is up 12% this week. Keep sharing your setups!',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 10),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityBar(double fraction) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3.0),
+        child: FractionallySizedBox(
+          heightFactor: fraction,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(fraction == 1.0 ? 1.0 : (fraction * 0.8)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
+            ),
+          ),
         ),
       ),
-      child: Stack(
+    );
+  }
+
+  Widget _buildFooterSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned(
-            right: -20,
-            bottom: -20,
-            child: Icon(Icons.bubble_chart, size: 120, color: AppTheme.primaryColor.withOpacity(0.06)),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              _buildFooterLink('Terms'),
+              _buildFooterLink('Privacy'),
+              _buildFooterLink('Ethics Guide'),
+              _buildFooterLink('Breeder Standards'),
+            ],
           ),
-          Center(
+          const SizedBox(height: 8),
+          const Text(
+            '© 2026 ScaleSync Social',
+            style: TextStyle(color: AppTheme.textLight, fontSize: 10),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterLink(String label) {
+    return InkWell(
+      onTap: () {},
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppTheme.textLight,
+          fontSize: 10,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+}
+
+// --- Post Composer Card ---
+class _PostComposerCard extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final VoidCallback onPublish;
+  final String? avatarUrl;
+
+  const _PostComposerCard({
+    required this.controller,
+    required this.focusNode,
+    required this.onPublish,
+    this.avatarUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSecondary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Avatar
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: avatarUrl != null
+                ? Image.network(
+                    avatarUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.account_circle,
+                      color: AppTheme.primaryColor,
+                      size: 32,
+                    ),
+                  )
+                : const Icon(
+                    Icons.account_circle,
+                    color: AppTheme.primaryColor,
+                    size: 32,
+                  ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.verified, color: AppTheme.primaryColor.withOpacity(0.4), size: 32),
-                const SizedBox(height: 8),
+                TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  maxLines: null,
+                  minLines: 3,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: const InputDecoration(
+                    hintText: "What's happening in your terrarium?",
+                    hintStyle: TextStyle(color: AppTheme.textLight, fontSize: 13),
+                    fillColor: Colors.transparent,
+                    filled: true,
+                    contentPadding: EdgeInsets.zero,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Divider(color: Color(0xFF333333), height: 1),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _buildComposerAction(Icons.image_outlined, 'Photo'),
+                    const SizedBox(width: 12),
+                    _buildComposerAction(Icons.videocam_outlined, 'Video'),
+                    const SizedBox(width: 12),
+                    _buildComposerAction(Icons.thermostat_outlined, 'Stats'),
+                    const Spacer(),
+                    ElevatedButton(
+                      onPressed: onPublish,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Publish',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComposerAction(IconData icon, String label) {
+    return InkWell(
+      onTap: () {},
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+        child: Row(
+          children: [
+            Icon(icon, color: AppTheme.textLight, size: 18),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(color: AppTheme.textLight, fontSize: 11),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- Social Post Card ---
+class _SocialPostCard extends StatefulWidget {
+  final _MorphUpdatePost post;
+  final bool isLiked;
+  final VoidCallback onLikeToggle;
+
+  const _SocialPostCard({
+    required this.post,
+    required this.isLiked,
+    required this.onLikeToggle,
+  });
+
+  @override
+  State<_SocialPostCard> createState() => _SocialPostCardState();
+}
+
+class _SocialPostCardState extends State<_SocialPostCard> {
+  @override
+  Widget build(BuildContext context) {
+    final post = widget.post;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSecondary,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Post Header
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                _buildAvatar(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            post.breederName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (post.avatarIcon == null) ...[
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.verified,
+                              color: AppTheme.primaryColor,
+                              size: 13,
+                            ),
+                          ]
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${post.timeAgo} • ${post.subtitle}',
+                        style: const TextStyle(
+                          color: AppTheme.textLight,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.more_horiz, color: AppTheme.textLight),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+
+          // Media Section
+          if (post.hasMedia && post.mediaUrl != null) _buildMediaSection(),
+
+          // Post Body
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (post.morphTitle.isNotEmpty && post.morphTitle != 'Broadcast Update') ...[
+                  Text(
+                    post.morphTitle,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      fontStyle: post.avatarIcon != null ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                ],
                 Text(
-                  'TELEMETRY DATA VERIFIED',
+                  post.morphContent,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+
+                // Stats Section
+                if (post.stats != null && post.stats!.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  _buildStatsRow(),
+                ],
+
+                // Tags Section
+                if (post.morphTags.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: post.morphTags.map((tag) => _buildTag(tag)).toList(),
+                  ),
+                ],
+
+                const SizedBox(height: 14),
+                const Divider(color: Color(0xFF333333), height: 1),
+                const SizedBox(height: 10),
+
+                // Actions Footer
+                _buildActionsFooter(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    final post = widget.post;
+    if (post.avatarIcon != null) {
+      return Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppTheme.accentColor.withOpacity(0.15),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(post.avatarIcon, color: AppTheme.accentColor, size: 18),
+      );
+    }
+
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: post.isVideo ? AppTheme.accentColor : AppTheme.primaryColor,
+          width: 1.2,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: post.avatarUrl != null
+          ? Image.network(
+              post.avatarUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => _buildFallbackAvatarText(),
+            )
+          : _buildFallbackAvatarText(),
+    );
+  }
+
+  Widget _buildFallbackAvatarText() {
+    return Container(
+      color: AppTheme.bgTertiary,
+      alignment: Alignment.center,
+      child: Text(
+        widget.post.avatarText,
+        style: const TextStyle(
+          color: AppTheme.primaryColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMediaSection() {
+    final post = widget.post;
+    return AspectRatio(
+      aspectRatio: post.isVideo ? 16 / 9 : 1.0,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.network(
+            post.mediaUrl!,
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: Colors.black26,
+              alignment: Alignment.center,
+              child: const Icon(Icons.broken_image, color: AppTheme.textLight, size: 32),
+            ),
+          ),
+          if (post.isVideo) ...[
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Simulating video playback...'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.85),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      )
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.black,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  '4K VIDEO',
                   style: TextStyle(
-                    fontFamily: 'monospace',
-                    color: AppTheme.primaryColor.withOpacity(0.6),
-                    fontSize: 10,
+                    color: Colors.white,
+                    fontSize: 8,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (!post.isVideo && post.morphTags.isNotEmpty) ...[
+            Positioned(
+              bottom: 12,
+              left: 12,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      post.morphTags.first,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                  if (post.morphTags.length > 1) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        post.morphTags[1],
+                        style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow() {
+    final stats = widget.post.stats!;
+    return Row(
+      children: stats.entries.map((entry) {
+        return Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppTheme.bgPrimary,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppTheme.borderColor.withOpacity(0.15)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  entry.key,
+                  style: const TextStyle(color: AppTheme.textLight, fontSize: 9),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  entry.value,
+                  style: const TextStyle(
+                    color: AppTheme.accentColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTag(String tag) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppTheme.bgTertiary,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        '#$tag',
+        style: const TextStyle(
+          color: AppTheme.textSecondary,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionsFooter() {
+    final post = widget.post;
+    final isLiked = widget.isLiked;
+    
+    if (post.avatarIcon != null) {
+      return Row(
+        children: [
+          InkWell(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Opening replies stream...'),
+                  duration: Duration(milliseconds: 1500),
+                ),
+              );
+            },
+            child: const Row(
+              children: [
+                Icon(Icons.forum_outlined, color: AppTheme.primaryColor, size: 18),
+                SizedBox(width: 6),
+                Text(
+                  '12 Expert Replies',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
                   ),
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // --- Column 2: Analytics Terminal ---
-  Widget _buildAnalyticsColumn(int postsCount) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: AppTheme.bgSecondary.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.analytics, color: AppTheme.primaryLight, size: 18),
-              SizedBox(width: 8),
-              Text(
-                'Analytics Terminal',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Line Chart custom painter
-          const Text('Engagement Growth Curve', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-          const SizedBox(height: 8),
-          Container(
-            height: 150,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.borderColor.withOpacity(0.2)),
-            ),
-            child: CustomPaint(
-              painter: _EngagementCurvePainter(),
-            ),
-          ),
-          const SizedBox(height: 25),
-
-          // Donut chart custom painter
-          const Text('Content Distribution Ratio', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: CustomPaint(
-                  painter: _DonutChartPainter(ratio: 0.4),
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(width: 8, height: 8, color: AppTheme.primaryLight),
-                        const SizedBox(width: 8),
-                        const Text('Media Nodes (40%)', style: TextStyle(color: AppTheme.textLight, fontSize: 11)),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Container(width: 8, height: 8, color: AppTheme.borderColor),
-                        const SizedBox(width: 8),
-                        const Text('Text Nodes (60%)', style: TextStyle(color: AppTheme.textLight, fontSize: 11)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 25),
-
-          // Telemetry Node Status Detail lines
-          _buildTerminalInfoLine('Telemetry System Status', 'ACTIVE // ONLINE', Colors.green),
-          _buildTerminalInfoLine('Database Sync Nodes', 'REALTIME', Colors.white),
-          _buildTerminalInfoLine('Active Node Feeds', '$postsCount Count', AppTheme.primaryLight),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTerminalInfoLine(String label, String value, Color valColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppTheme.borderColor.withOpacity(0.2))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: AppTheme.textLight, fontSize: 12)),
-          Text(
-            value,
-            style: TextStyle(
-              color: valColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              fontFamily: 'monospace',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- Column 3: Control Center ---
-  Widget _buildControlColumn() {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: AppTheme.bgSecondary.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.dashboard_customize, color: AppTheme.accentColor, size: 18),
-              SizedBox(width: 8),
-              Text(
-                'Control Deck',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-
-          // Quick broadcast posting form
-          const Text('Quick Broadcast Update', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _broadcastController,
-            maxLines: 3,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: InputDecoration(
-              hintText: 'Type message to broadcast live...',
-              hintStyle: const TextStyle(color: AppTheme.textLight, fontSize: 12),
-              fillColor: Colors.black26,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide(color: AppTheme.borderColor.withOpacity(0.4)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () {
-              if (_broadcastController.text.trim().isEmpty) return;
-              setState(() {
-                _myPosts.insert(0, _broadcastController.text.trim());
-                _broadcastController.clear();
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.black,
-              minimumSize: const Size(double.infinity, 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.send, size: 14),
-                SizedBox(width: 8),
-                Text('Broadcast Node', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 25),
-
-          // Signal Log Streams
-          Row(
-            children: [
-              _buildPulseIndicator(),
-              const SizedBox(width: 8),
-              const Text('Realtime Signals log', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          _buildSignalLogNode(Icons.favorite, 'GargoyleBreeder liked your photolink', '1m ago', Colors.red),
-          _buildSignalLogNode(Icons.person_add, 'PythonKing followed your updates', '12m ago', AppTheme.primaryLight),
-          _buildSignalLogNode(Icons.bolt, 'System: database node synchronized', '1h ago', AppTheme.accentColor),
-          _buildSignalLogNode(Icons.campaign, 'Notice: Marketplace pricing report', '2h ago', AppTheme.primaryColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPulseIndicator() {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: const BoxDecoration(
-        color: AppTheme.primaryLight,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: AppTheme.primaryLight, blurRadius: 4, spreadRadius: 1),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSignalLogNode(IconData icon, String message, String timeAgo, Color iconColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: iconColor, size: 14),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  message,
-                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  timeAgo,
-                  style: const TextStyle(color: AppTheme.textLight, fontSize: 9, fontFamily: 'monospace'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// --- Custom Painters for Charts ---
-
-class _EngagementCurvePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final gridPaint = Paint()
-      ..color = AppTheme.borderColor.withOpacity(0.15)
-      ..strokeWidth = 1.0;
-
-    // Draw horizontal grids
-    for (int i = 1; i <= 3; i++) {
-      final y = size.height * i / 4;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+      );
     }
 
-    // Draw curve path
-    final path = Path();
-    path.moveTo(0, size.height);
-    path.quadraticBezierTo(
-      size.width * 0.25,
-      size.height * 0.7,
-      size.width * 0.4,
-      size.height * 0.8,
-    );
-    path.cubicTo(
-      size.width * 0.6,
-      size.height * 0.9,
-      size.width * 0.75,
-      size.height * 0.4,
-      size.width,
-      size.height * 0.2,
-    );
-
-    // Gradient fill paint
-    final fillPath = Path.from(path);
-    fillPath.lineTo(size.width, size.height);
-    fillPath.lineTo(0, size.height);
-    fillPath.close();
-
-    final gradient = LinearGradient(
-      colors: [AppTheme.primaryLight.withOpacity(0.35), Colors.transparent],
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-    );
-
-    final fillPaint = Paint()
-      ..shader = gradient.createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    canvas.drawPath(fillPath, fillPaint);
-
-    // Line stroke paint
-    final strokePaint = Paint()
-      ..color = AppTheme.primaryLight
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawPath(path, strokePaint);
-
-    // Data circles
-    final pointPaint = Paint()
-      ..color = AppTheme.primaryColor
-      ..style = PaintingStyle.fill;
-    final cyanPointPaint = Paint()
-      ..color = AppTheme.primaryLight
-      ..style = PaintingStyle.fill;
-
-    // Draw circles at specific positions
-    canvas.drawCircle(Offset(size.width * 0.4, size.height * 0.8), 4.5, pointPaint);
-    canvas.drawCircle(Offset(size.width * 0.73, size.height * 0.46), 4.5, cyanPointPaint);
-    canvas.drawCircle(Offset(size.width, size.height * 0.2), 4.5, pointPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _DonutChartPainter extends CustomPainter {
-  final double ratio;
-  _DonutChartPainter({required this.ratio});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-    final strokeWidth = size.width * 0.15;
-
-    // Draw full track circle (Text Nodes)
-    final trackPaint = Paint()
-      ..color = AppTheme.borderColor.withOpacity(0.3)
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-    canvas.drawCircle(center, radius - strokeWidth / 2, trackPaint);
-
-    // Draw value arc (Media Nodes)
-    final arcPaint = Paint()
-      ..color = AppTheme.primaryLight
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final sweepAngle = 2 * math.pi * ratio;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
-      -math.pi / 2,
-      sweepAngle,
-      false,
-      arcPaint,
+    return Row(
+      children: [
+        // Like Button
+        InkWell(
+          onTap: widget.onLikeToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+            child: Row(
+              children: [
+                Icon(
+                  isLiked ? Icons.favorite : Icons.favorite_border,
+                  color: isLiked ? AppTheme.primaryColor : AppTheme.textLight,
+                  size: 18,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${post.likes + (isLiked ? 1 : 0)}',
+                  style: TextStyle(
+                    color: isLiked ? AppTheme.primaryColor : AppTheme.textLight,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 20),
+        
+        // Comment Button
+        InkWell(
+          onTap: () {},
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.chat_bubble_outline,
+                  color: AppTheme.textLight,
+                  size: 18,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${post.comments}',
+                  style: const TextStyle(
+                    color: AppTheme.textLight,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Spacer(),
+        
+        // Share Button
+        IconButton(
+          icon: const Icon(Icons.share_outlined, color: AppTheme.textLight, size: 18),
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Link copied to clipboard!'),
+                duration: Duration(milliseconds: 1500),
+              ),
+            );
+          },
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
     );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-// Model post class
+// --- Post Model Class ---
 class _MorphUpdatePost {
   final String breederName;
   final String avatarText;
+  final String? avatarUrl;
+  final IconData? avatarIcon;
   final String timeAgo;
+  final String subtitle;
   final String morphTitle;
   final String morphContent;
   final List<String> morphTags;
@@ -1038,11 +1542,17 @@ class _MorphUpdatePost {
   final int comments;
   final int shares;
   final bool hasMedia;
+  final String? mediaUrl;
+  final bool isVideo;
+  final Map<String, String>? stats;
 
   _MorphUpdatePost({
     required this.breederName,
     required this.avatarText,
+    this.avatarUrl,
+    this.avatarIcon,
     required this.timeAgo,
+    required this.subtitle,
     required this.morphTitle,
     required this.morphContent,
     required this.morphTags,
@@ -1050,9 +1560,13 @@ class _MorphUpdatePost {
     required this.comments,
     required this.shares,
     required this.hasMedia,
+    this.mediaUrl,
+    this.isVideo = false,
+    this.stats,
   });
 }
 
+// --- User Menu Button ---
 class _SocialUserMenuButton extends StatefulWidget {
   final Map<String, dynamic>? userData;
   final ThemeService themeService;
@@ -1083,7 +1597,7 @@ class _SocialUserMenuButtonState extends State<_SocialUserMenuButton> {
         offset: const Offset(0, 36),
         icon: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          transform: Matrix4.identity() ..scale(showHovered ? 1.15 : 1.0),
+          transform: Matrix4.identity()..scale(showHovered ? 1.15 : 1.0),
           child: const Icon(
             Icons.account_circle,
             size: 24,

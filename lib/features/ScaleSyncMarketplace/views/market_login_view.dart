@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:scalesync_pro_ecosystem/services/auth_service.dart';
 import 'package:scalesync_pro_ecosystem/utils/theme.dart';
 import 'package:scalesync_pro_ecosystem/screens/auth/register_screen.dart';
+import 'package:scalesync_pro_ecosystem/features/ScaleSyncMarketplace/views/marketplace_grid_view.dart';
 
 class MarketLoginView extends StatefulWidget {
   const MarketLoginView({super.key});
@@ -105,6 +106,10 @@ class _MarketLoginViewState extends State<MarketLoginView> with TickerProviderSt
         );
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const MarketplaceGridView()),
+          );
         }
       }
     } catch (e) {
@@ -140,6 +145,10 @@ class _MarketLoginViewState extends State<MarketLoginView> with TickerProviderSt
         );
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const MarketplaceGridView()),
+          );
         }
       }
     } catch (e) {
