@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:scalesync_pro_ecosystem/utils/theme.dart';
-import 'package:scalesync_pro_ecosystem/features/ScaleSyncPro/views/dashboard_view.dart';
 import 'package:scalesync_pro_ecosystem/features/ScaleSyncMarketplace/views/marketplace_grid_view.dart';
 import 'package:scalesync_pro_ecosystem/features/ScaleSyncSocial/views/social_feed_view.dart';
 import 'package:scalesync_pro_ecosystem/screens/main_app_screen.dart';

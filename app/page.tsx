@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DevAdminInitializer from "./components/DevAdminInitializer";
+import ScaleSyncSocialDashboard from "@/src/components/ScaleSyncSocialDashboard";
 import {
   createBreedingProjectAction,
   getBreedingProjectsAction,
@@ -897,77 +898,23 @@ export default function DashboardPage() {
           <section className="content-section active">
             <div className="section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "15px" }}>
               <div>
-                <h1>ReptiGram Social Feed</h1>
-                <p>Share photos and updates of your collection with the community.</p>
+                <h1>ScaleSync Social Hub</h1>
+                <p>Telemetry feed, analytics, and social node controls.</p>
               </div>
               <button className="btn btn-primary" onClick={() => setActiveModal("addPost")}>
                 <i className="fas fa-paper-plane"></i> Write a Post
               </button>
             </div>
 
-            <div style={{ maxWidth: "700px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "20px" }}>
-              {posts.length === 0 ? (
-                <div className="dashboard-section" style={{ textAlign: "center", padding: "40px", color: "var(--text-secondary)" }}>
-                  No posts published yet. Be the first to share an update!
-                </div>
-              ) : (
-                posts.map((post) => {
-                  const hasLiked = post.likesMap ? !!post.likesMap[user?.uid] : false;
-                  return (
-                    <div key={post.id} className="dashboard-section" style={{ padding: "20px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--primary-color)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                            {post.authorName?.substring(0, 1).toUpperCase() || "U"}
-                          </div>
-                          <div>
-                            <strong style={{ display: "block" }}>{post.authorName}</strong>
-                            <small style={{ color: "var(--text-light)" }}>Posted to ReptiGram</small>
-                          </div>
-                        </div>
-                        {(post.uid === user?.uid || isAdmin) && (
-                          <button 
-                            className="btn btn-outline" 
-                            style={{ color: "#f44336", borderColor: "transparent", padding: "5px" }}
-                            onClick={() => handleDeletePost(post.id)}
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                        )}
-                      </div>
-
-                      <p style={{ fontSize: "1.1rem", marginBottom: "15px", whiteSpace: "pre-wrap" }}>{post.content}</p>
-
-                      {post.photoUrl && (
-                        <div style={{ borderRadius: "8px", overflow: "hidden", marginBottom: "15px", maxHeight: "400px", border: "1px solid var(--border-color)" }}>
-                          <img 
-                            src={post.photoUrl} 
-                            alt="Social upload" 
-                            style={{ width: "100%", height: "auto", display: "block", objectFit: "cover" }} 
-                          />
-                        </div>
-                      )}
-
-                      <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "15px", display: "flex", alignItems: "center", gap: "20px" }}>
-                        <button 
-                          style={{
-                            background: "none", border: "none", cursor: "pointer", fontSize: "1rem",
-                            color: hasLiked ? "#00ff00" : "var(--text-secondary)", display: "flex", alignItems: "center", gap: "8px"
-                          }}
-                          onClick={() => handleLikePost(post.id)}
-                        >
-                          <i className={hasLiked ? "fas fa-thumbs-up" : "far fa-thumbs-up"}></i>
-                          <span>{post.likesCount} Likes</span>
-                        </button>
-                        <span style={{ fontSize: "0.85rem", color: "var(--text-light)" }}>
-                          {post.recentLikers && post.recentLikers.length > 0 && `Liked by: ${post.recentLikers.join(", ")}`}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+            <ScaleSyncSocialDashboard
+              posts={posts}
+              user={user}
+              isAdmin={isAdmin}
+              handleDeletePost={handleDeletePost}
+              handleLikePost={handleLikePost}
+              setActiveModal={setActiveModal}
+              theme={theme}
+            />
           </section>
         )}
 

@@ -591,14 +591,41 @@ class _MarketplaceGridViewState extends ConsumerState<MarketplaceGridView> {
             ),
             const SizedBox(width: 16),
 
-            // Avatar circle menu button
-            if (isLoggedIn)
+            // User section matching ScaleSync Pro
+            if (isLoggedIn) ...[
+              // Pro Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                ),
+                child: const Text(
+                  'Pro',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // User Name
+              Text(
+                userData?['name'] ?? authService.currentUser?.displayName ?? authService.currentUser?.email?.split('@')[0] ?? 'Guest',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 15),
               _MarketplaceUserMenuButton(
                 userData: userData,
                 themeService: themeService,
                 authService: authService,
-              )
-            else
+              ),
+            ] else
               TextButton.icon(
                 onPressed: () {
                   Navigator.push(
@@ -651,13 +678,40 @@ class _MarketplaceGridViewState extends ConsumerState<MarketplaceGridView> {
               ),
               Row(
                 children: [
-                  if (isLoggedIn)
+                  if (isLoggedIn) ...[
+                    // Pro Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentColor,
+                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusSm),
+                      ),
+                      child: const Text(
+                        'Pro',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // User Name
+                    Text(
+                      userData?['name'] ?? authService.currentUser?.displayName ?? authService.currentUser?.email?.split('@')[0] ?? 'Guest',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.white : AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
                     _MarketplaceUserMenuButton(
                       userData: userData,
                       themeService: themeService,
                       authService: authService,
-                    )
-                  else
+                    ),
+                  ] else
                     IconButton(
                       onPressed: () {
                         Navigator.push(
