@@ -34,6 +34,31 @@ class StorageService {
     }
   }
 
+  /// Upload an animal asset to the isolated, immutable path:
+  /// users/{userId}/animals/{animalId}/assets/{assetId}
+  Future<String> uploadAnimalAsset({
+    required String userId,
+    required String animalId,
+    required String assetId,
+    required Uint8List data,
+    String? contentType,
+  }) async {
+    try {
+      final ref = _storage.ref().child('users/$userId/animals/$animalId/assets/$assetId');
+      final uploadTask = ref.putData(
+        data,
+        SettableMetadata(
+          contentType: contentType,
+          cacheControl: 'public, max-age=31536000', // Enforce high caching header
+        ),
+      );
+      await uploadTask;
+      return await ref.getDownloadURL();
+    } catch (e) {
+      throw Exception('Failed to upload animal asset: $e');
+    }
+  }
+
   /// Delete a file from user's storage
   Future<void> deleteFile(String path) async {
     try {

@@ -71,8 +71,12 @@ class MarketplaceListing {
       for (final e in (data['verifiedPedigreeSnapshot'] as List)) {
         if (e is num) {
           parsedPedigree.add(e.toDouble());
+        } else if (e is Map) {
+          final w = e['w'];
+          if (w is num) {
+            parsedPedigree.add(w.toDouble());
+          }
         }
-        // Non-numeric entries (e.g. null, String) are silently skipped.
       }
     }
 

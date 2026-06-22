@@ -15,11 +15,21 @@ class ReptileService {
   CollectionReference<Map<String, dynamic>> get _reptilesCollection =>
       _firestore.collection('users').doc(_userId).collection('reptiles');
 
+  // Generate a new unique reptile document ID
+  String generateReptileId() {
+    return _reptilesCollection.doc().id;
+  }
+
   // Add a new reptile
   Future<String> addReptile(Reptile reptile) async {
     try {
-      final docRef = await _reptilesCollection.add(reptile.toMap());
-      return docRef.id;
+      if (reptile.id != null && reptile.id!.isNotEmpty) {
+        await _reptilesCollection.doc(reptile.id).set(reptile.toMap());
+        return reptile.id!;
+      } else {
+        final docRef = await _reptilesCollection.add(reptile.toMap());
+        return docRef.id;
+      }
     } catch (e) {
       throw Exception('Failed to add reptile: $e');
     }
@@ -62,7 +72,22 @@ class ReptileService {
   // Update a reptile
   Future<void> updateReptile(String id, Reptile reptile) async {
     try {
-      await _reptilesCollection.doc(id).update(reptile.toMap());
+      final batch = _firestore.batch();
+      final reptileRef = _reptilesCollection.doc(id);
+      batch.update(reptileRef, reptile.toMap());
+
+      // Automatic State Synchronization (Requirement 4)
+      final listingId = reptile.marketplaceListingId;
+      final status = reptile.status.toLowerCase();
+      if (listingId != null && listingId.isNotEmpty && (status == 'sold' || status == 'archived' || status == 'deceased')) {
+        final listingRef = _firestore.collection('marketplace_listings').doc(listingId);
+        batch.update(listingRef, {
+          'status': reptile.status,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
     } catch (e) {
       throw Exception('Failed to update reptile: $e');
     }
@@ -342,7 +367,22 @@ class ReptileService {
         ));
       }
 
-      await _reptilesCollection.doc(reptileId).update(newReptile.copyWith(updatedAt: now).toMap());
+      final batch = _firestore.batch();
+      final reptileRef = _reptilesCollection.doc(reptileId);
+      batch.update(reptileRef, newReptile.copyWith(updatedAt: now).toMap());
+
+      // Automatic State Synchronization (Requirement 4)
+      final listingId = newReptile.marketplaceListingId;
+      final status = newReptile.status.toLowerCase();
+      if (listingId != null && listingId.isNotEmpty && (status == 'sold' || status == 'archived' || status == 'deceased')) {
+        final listingRef = _firestore.collection('marketplace_listings').doc(listingId);
+        batch.update(listingRef, {
+          'status': newReptile.status,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
 
       for (final log in logs) {
         await addActivityLog(reptileId, log);

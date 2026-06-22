@@ -139,13 +139,23 @@ class MarketPushService {
 
       // Sort logs chronologically (oldest first) to correctly plot the growth graph
       logsWithDates.sort((a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
-      final List<double> verifiedPedigreeSnapshot = logsWithDates.map((e) => e['weight'] as double).toList();
+      final List<Map<String, dynamic>> verifiedPedigreeSnapshot = logsWithDates.map((e) {
+        final date = e['date'] as DateTime;
+        final dateStr = '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        return {
+          'w': (e['weight'] as double),
+          'd': dateStr,
+        };
+      }).toList();
 
       // If the timeline didn't produce weight changes, default to the reptile's current weight
       final currentWeight = reptile.measurements['weight'];
       if (verifiedPedigreeSnapshot.isEmpty && currentWeight != null) {
         if (currentWeight is num) {
-          verifiedPedigreeSnapshot.add(currentWeight.toDouble());
+          verifiedPedigreeSnapshot.add({
+            'w': currentWeight.toDouble(),
+            'd': '${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}',
+          });
         }
       }
 
@@ -185,7 +195,7 @@ class MarketPushService {
           throw Exception('Source reptile document not found in rack inventory.');
         }
 
-        // Set the public marketplace listing
+        // Set the public marketplace listing with ultra-lightweight structure
         transaction.set(listingRef, {
           'listingId': listingId,
           'sellerId': userId,
@@ -195,7 +205,8 @@ class MarketPushService {
           'price': price,
           'morphs': morphs,
           'genetics': morphs, // Backward compatibility alias
-          'imageUrls': reptile.photoUrls,
+          'photoUrl': reptile.photoUrls.isNotEmpty ? reptile.photoUrls.first : '',
+          'imageUrls': reptile.photoUrls.isNotEmpty ? [reptile.photoUrls.first] : [],
           'listingDate': Timestamp.now(),
           'verifiedPedigreeSnapshot': verifiedPedigreeSnapshot,
         });

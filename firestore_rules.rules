@@ -44,24 +44,25 @@ service cloud.firestore {
       }
     }
 
-    // Social Media Feeds (posts collection)
+    // Helper functions for validation
+    function isOwner(uid) {
+      return request.auth != null && uid == request.auth.uid;
+    }
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Social Media Feeds (posts collection and social_posts collection)
     match /posts/{postId} {
-      // Any authenticated user can read posts
       allow read: if request.auth != null;
-      
-      // Must be authenticated, the post creator UID must match auth.uid, and have the uid field
       allow create: if request.auth != null 
         && request.resource.data.uid == request.auth.uid 
         && request.resource.data.keys().hasAny(['uid']);
-        
-      // Update validation (Delta analysis):
-      // Owners can update any properties. Non-owners can only update like metrics.
       allow update: if request.auth != null && (
         resource.data.uid == request.auth.uid 
         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'recentLikers', 'likesMap'])
       );
-      
-      // Only the owner or an admin can delete posts (Custom Claims check)
       allow delete: if request.auth != null && (
         resource.data.uid == request.auth.uid 
         || request.auth.token.admin == true
@@ -78,32 +79,41 @@ service cloud.firestore {
       }
     }
 
+    match /social_posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null 
+        && request.resource.data.uid == request.auth.uid 
+        && request.resource.data.keys().hasAny(['uid']);
+      allow update: if request.auth != null && (
+        resource.data.uid == request.auth.uid 
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'recentLikers', 'likesMap'])
+      );
+      allow delete: if request.auth != null && (
+        resource.data.uid == request.auth.uid 
+        || request.auth.token.admin == true
+      );
+    }
+
     // Internal Marketplace Listings
     match /listings/{listingId} {
-      // Any authenticated user can browse marketplace listings
       allow read: if request.auth != null;
-      
-      // Must be authenticated and seller UID must match auth.uid
       allow create: if request.auth != null 
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.keys().hasAny(['uid']);
-        
-      // Only owner or admin can update/delete listings
       allow update, delete: if request.auth != null 
         && (resource.data.uid == request.auth.uid || request.auth.token.admin == true);
     }
 
-    // Public Marketplace Listings
+    // Public Marketplace Listings (strictly validating structural types for pedigree snapshot and single photo download URL)
     match /marketplace_listings/{listingId} {
-      // Any authenticated user can browse marketplace listings
-      allow read: if request.auth != null;
-      
-      // Must be authenticated and seller UID must match auth.uid
+      allow read: if true;
       allow create: if request.auth != null 
-        && request.resource.data.sellerId == request.auth.uid;
-        
-      // Only owner or admin can update/delete listings
-      allow update, delete: if request.auth != null 
+        && request.resource.data.sellerId == request.auth.uid
+        && (request.resource.data.verifiedPedigreeSnapshot == null || request.resource.data.verifiedPedigreeSnapshot is list);
+      allow update: if request.auth != null 
+        && (resource.data.sellerId == request.auth.uid || request.auth.token.admin == true)
+        && (request.resource.data.verifiedPedigreeSnapshot == null || request.resource.data.verifiedPedigreeSnapshot is list);
+      allow delete: if request.auth != null 
         && (resource.data.sellerId == request.auth.uid || request.auth.token.admin == true);
     }
 
