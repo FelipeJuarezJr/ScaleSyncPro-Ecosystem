@@ -9,6 +9,7 @@ import 'package:provider/provider.dart' as legacy_provider;
 import 'package:scalesync_pro_ecosystem/services/auth_service.dart';
 import 'package:scalesync_pro_ecosystem/services/theme_service.dart';
 import 'market_login_view.dart';
+import 'package:scalesync_pro_ecosystem/widgets/download_app_dialog.dart';
 
 // ==========================================
 // Marketplace Listing Model
@@ -2918,6 +2919,17 @@ class _MarketplaceUserMenuButtonState extends State<_MarketplaceUserMenuButton> 
             ),
           ),
           const PopupMenuDivider(),
+          const PopupMenuItem(
+            value: 'download',
+            child: Row(
+              children: [
+                Icon(Icons.download, size: 16),
+                SizedBox(width: 8),
+                Text('Download App'),
+              ],
+            ),
+          ),
+          const PopupMenuDivider(),
           if (widget.authService.isAuthenticated)
             const PopupMenuItem(
               value: 'logout',
@@ -2943,6 +2955,11 @@ class _MarketplaceUserMenuButtonState extends State<_MarketplaceUserMenuButton> 
         ],
         onSelected: (value) async {
           switch (value) {
+            case 'download':
+              if (context.mounted) {
+                DownloadAppDialog.show(context);
+              }
+              break;
             case 'theme':
               widget.themeService.toggleTheme();
               break;

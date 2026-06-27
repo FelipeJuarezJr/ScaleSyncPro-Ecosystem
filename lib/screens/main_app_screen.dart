@@ -12,6 +12,7 @@ import 'schedule_screen.dart';
 import 'inventory_screen.dart';
 import 'reports_screen.dart';
 import 'package:scalesync_pro_ecosystem/widgets/add_task_modal.dart';
+import 'package:scalesync_pro_ecosystem/widgets/download_app_dialog.dart';
 
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({super.key});
@@ -482,6 +483,17 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         const PopupMenuDivider(),
         const PopupMenuItem(
+          value: 'download',
+          child: Row(
+            children: [
+              Icon(Icons.download),
+              SizedBox(width: 8),
+              Text('Download App'),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem(
           value: 'logout',
           child: Row(
             children: [
@@ -494,6 +506,9 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
       ],
       onSelected: (value) async {
         switch (value) {
+          case 'download':
+            DownloadAppDialog.show(context);
+            break;
           case 'theme':
             themeService.toggleTheme();
             break;
@@ -623,6 +638,17 @@ class _UserMenuButtonState extends State<_UserMenuButton> {
           ),
           const PopupMenuDivider(),
           PopupMenuItem(
+            value: 'download',
+            child: Row(
+              children: [
+                Icon(Icons.download, size: 16),
+                SizedBox(width: 8),
+                Text('Download App'),
+              ],
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
             value: 'logout',
             child: Row(
               children: [
@@ -635,6 +661,11 @@ class _UserMenuButtonState extends State<_UserMenuButton> {
         ],
         onSelected: (value) async {
           switch (value) {
+            case 'download':
+              if (context.mounted) {
+                DownloadAppDialog.show(context);
+              }
+              break;
             case 'theme':
               widget.themeService.toggleTheme();
               break;

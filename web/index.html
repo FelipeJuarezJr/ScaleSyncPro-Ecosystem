@@ -48,6 +48,31 @@
       link.rel = 'manifest';
       link.href = manifestFile;
       document.head.appendChild(link);
+
+      // PWA Install Prompt Capture
+      window.deferredInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.deferredInstallPrompt = e;
+        if (typeof window.onAppInstallable === 'function') {
+          window.onAppInstallable();
+        }
+      });
+
+      window.presentInstallPrompt = function() {
+        if (window.deferredInstallPrompt) {
+          window.deferredInstallPrompt.prompt();
+          return window.deferredInstallPrompt.userChoice.then(function(choiceResult) {
+            window.deferredInstallPrompt = null;
+            return choiceResult.outcome === 'accepted';
+          });
+        }
+        return false;
+      };
+
+      window.isAppInstalled = function() {
+        return (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      };
     })();
   </script>
 

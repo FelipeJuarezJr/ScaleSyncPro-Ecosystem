@@ -9,6 +9,7 @@ import 'package:scalesync_pro_ecosystem/features/ScaleSyncSocial/views/social_lo
 import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:scalesync_pro_ecosystem/widgets/download_app_dialog.dart';
 
 class SocialFeedView extends StatefulWidget {
   const SocialFeedView({super.key});
@@ -6283,6 +6284,17 @@ class _SocialUserMenuButtonState extends State<_SocialUserMenuButton> {
             ),
           ),
           const PopupMenuDivider(),
+          const PopupMenuItem(
+            value: 'download',
+            child: Row(
+              children: [
+                Icon(Icons.download, size: 16),
+                SizedBox(width: 8),
+                Text('Download App'),
+              ],
+            ),
+          ),
+          const PopupMenuDivider(),
           if (widget.authService.isAuthenticated)
             const PopupMenuItem(
               value: 'logout',
@@ -6308,6 +6320,11 @@ class _SocialUserMenuButtonState extends State<_SocialUserMenuButton> {
         ],
         onSelected: (value) async {
           switch (value) {
+            case 'download':
+              if (context.mounted) {
+                DownloadAppDialog.show(context);
+              }
+              break;
             case 'theme':
               widget.themeService.toggleTheme();
               break;
